@@ -3,6 +3,7 @@ using Microsoft.Extensions.FileSystemGlobbing;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
@@ -18,29 +19,39 @@ namespace ScytheButler.Services
             _filePath = Path.GetFullPath(_filePath);
             LoadBalances();
         }
+    public long ParseAmount(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            throw new FormatException("Amount cannot be empty.");
 
-        public int ParseAmount(string input)
+        input = input.Trim().ToUpper().Replace(",", "");
+
+        long multiplier = 1;
+
+        if (input.EndsWith("K"))
         {
-            input = input.Trim().ToUpper();
-
-            if (string.IsNullOrEmpty(input))
-                throw new ArgumentException("Amount cannot be empty.");
-
-            double number;
-
-            if (input.EndsWith("K"))
-                number = double.Parse(input[..^1]) * 1_000;
-            if (input.EndsWith("M"))
-                number = double.Parse(input[..^1]) * 1_000_000;
-            if (input.EndsWith("B"))
-                number = double.Parse(input[..^1]) * 1_000_000;
-            else
-                number = double.Parse(input);
-
-            return (int)number;
+            multiplier = 1_000;
+            input = input.Substring(0, input.Length - 1);
+        }
+        else if (input.EndsWith("M"))
+        {
+            multiplier = 1_000_000;
+            input = input.Substring(0, input.Length - 1);
+        }
+        else if (input.EndsWith("B"))
+        {
+            multiplier = 1_000_000_000;
+            input = input.Substring(0, input.Length - 1);
         }
 
-        public void LoadBalances()
+        if (!double.TryParse(input, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double number))
+            throw new FormatException("Invalid number format.");
+
+        return (long)(number * multiplier);
+    }
+
+
+    public void LoadBalances()
         {
             if (File.Exists(_filePath))
             {
