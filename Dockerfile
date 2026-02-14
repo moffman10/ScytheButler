@@ -1,20 +1,21 @@
-﻿# Use official .NET SDK image to build the project
+﻿# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copy csproj and restore dependencies
-COPY *.csproj ./
-RUN dotnet restore
+# Copy the csproj and restore dependencies
+COPY ScytheButler/ScytheButler.csproj ./ScytheButler/
+RUN dotnet restore ./ScytheButler/ScytheButler.csproj
 
-# Copy the rest of the files and build
+# Copy all files and build
 COPY . ./
-RUN dotnet publish -c Release -o out
+RUN dotnet publish ./ScytheButler/ScytheButler.csproj -c Release -o out
 
-# Use runtime image
+# Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/out ./
 
-# Expose the port your app will use
+# Expose the port Fly.io expects
 EXPOSE 8080
+
 ENTRYPOINT ["dotnet", "ScytheButler.dll"]
