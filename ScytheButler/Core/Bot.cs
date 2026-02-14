@@ -20,9 +20,11 @@ namespace ScytheButler.Core
 
         public Bot()
         {
-            var configuration = new ConfigurationBuilder().AddUserSecrets<Program>().Build();
+            _token = Environment.GetEnvironmentVariable("DiscordToken");
 
-            _token = configuration["DiscordToken"];
+
+            if(string.IsNullOrEmpty(_token))
+                throw new Exception("DiscordToken environment variable not set!");
 
             _client = new DiscordSocketClient(new DiscordSocketConfig
             {
