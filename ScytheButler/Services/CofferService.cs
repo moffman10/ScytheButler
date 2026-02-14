@@ -10,31 +10,23 @@ namespace ScytheButler.Services
 
         public CofferService()
         {
-            var rawUri = Environment.GetEnvironmentVariable("DATABASE_URL")
-                         ?? throw new Exception("DATABASE_URL not found.");
+            var rawConnection = Environment.GetEnvironmentVariable("DATABASE_URL")
+                                ?? throw new Exception("DATABASE_URL not found.");
 
-            _connectionString = ParseConnectionString(rawUri);
+            // If it starts with postgres://, we must convert it for Npgsql
+            if (rawConnection.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+            {
+                var uri = new Uri(rawConnection);
+                var userInfo = uri.UserInfo.Split(':');
+                _connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true;";
+            }
+            else
+            {
+                _connectionString = rawConnection;
+            }
 
             InitializeDatabase();
         }
-        private string ParseConnectionString(string uriString)
-        {
-            // If it's already in Key=Value format, return it
-            if (!uriString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
-                return uriString;
-
-            var uri = new Uri(uriString);
-            var userInfo = uri.UserInfo.Split(':');
-            var user = userInfo[0];
-            var password = userInfo.Length > 1 ? userInfo[1] : "";
-            var host = uri.Host;
-            var port = uri.Port > 0 ? uri.Port : 5432;
-            var database = uri.AbsolutePath.TrimStart('/');
-
-            // Railway usually requires SSL, so we include it here
-            return $"Host={host};Port={port};Database={database};Username={user};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
-        }
-
         private void InitializeDatabase()
         {
             using var conn = new NpgsqlConnection(_connectionString);
