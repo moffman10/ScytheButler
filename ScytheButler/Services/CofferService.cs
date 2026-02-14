@@ -1,120 +1,130 @@
-﻿using Discord;
-using Microsoft.Extensions.FileSystemGlobbing;
+﻿using Npgsql;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.Text;
-using System.Text.Json;
 
 namespace ScytheButler.Services
 {
     public class CofferService
     {
-        private readonly string _filePath = Path.Combine(AppContext.BaseDirectory,"..", "..", "..", "Balance.json");
+        private readonly string _connectionString;
 
-        private Dictionary<string, long> _cofferBalances;
         public CofferService()
         {
-            _filePath = Path.GetFullPath(_filePath);
-            LoadBalances();
+            _connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
+                                ?? throw new Exception("DATABASE_URL not found.");
+            InitializeDatabase();
         }
-    public long ParseAmount(string input)
-    {
-        if (string.IsNullOrWhiteSpace(input))
-            throw new FormatException("Amount cannot be empty.");
 
-        input = input.Trim().ToUpper().Replace(",", "");
-
-        long multiplier = 1;
-
-        if (input.EndsWith("K"))
+        private void InitializeDatabase()
         {
-            multiplier = 1_000;
-            input = input.Substring(0, input.Length - 1);
-        }
-        else if (input.EndsWith("M"))
-        {
-            multiplier = 1_000_000;
-            input = input.Substring(0, input.Length - 1);
-        }
-        else if (input.EndsWith("B"))
-        {
-            multiplier = 1_000_000_000;
-            input = input.Substring(0, input.Length - 1);
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(@"
+                CREATE TABLE IF NOT EXISTS coffer (
+                    username TEXT PRIMARY KEY,
+                    balance BIGINT NOT NULL
+                );", conn);
+
+            cmd.ExecuteNonQuery();
         }
 
-        if (!double.TryParse(input, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double number))
-            throw new FormatException("Invalid number format.");
-
-        return (long)(number * multiplier);
-    }
-
-
-    public void LoadBalances()
+        public long ParseAmount(string input)
         {
-            if (File.Exists(_filePath))
-            {
-                string json = File.ReadAllText(_filePath);
+            if (string.IsNullOrWhiteSpace(input))
+                throw new FormatException("Amount cannot be empty.");
 
-                var data = JsonSerializer.Deserialize<CofferData>(json);
-                _cofferBalances = data?.Coffers ?? new Dictionary<string, long>();
-            }
-            else
-            {
-                _cofferBalances = new Dictionary<string, long>();
-                SaveBalances();
-            }
-        }
-        public void SaveBalances()
-        {
-            var data = new CofferData { Coffers = _cofferBalances };
+            input = input.Trim().ToUpper().Replace(",", "");
+            long multiplier = 1;
 
-            string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true});
-            File.WriteAllText(_filePath, json);
+            if (input.EndsWith("K")) { multiplier = 1_000; input = input[..^1]; }
+            else if (input.EndsWith("M")) { multiplier = 1_000_000; input = input[..^1]; }
+            else if (input.EndsWith("B")) { multiplier = 1_000_000_000; input = input[..^1]; }
+
+            if (!double.TryParse(input, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out double number))
+                throw new FormatException("Invalid number format.");
+
+            return (long)(number * multiplier);
         }
-        public long GetCofferBalance(string username)
-        {
-            return _cofferBalances.ContainsKey(username) ? _cofferBalances[username] : 0;
-        }
-        public long GetTotalBalance()
-        {
-            return _cofferBalances.Values.Sum();
-        }
+
         public bool AddCoffer(string username)
         {
-            if (_cofferBalances.ContainsKey(username)) return false;
-            _cofferBalances[username] = 0;
-            SaveBalances();
-            return true;
-        }
-        public void AddToCoffer(string username, long amount)
-        {
-            if (_cofferBalances.ContainsKey(username)) _cofferBalances[username] += amount; 
-            else _cofferBalances[username] = amount;
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
 
-            SaveBalances();
+            var cmd = new NpgsqlCommand(
+                "INSERT INTO coffer (username, balance) VALUES (@username, 0) ON CONFLICT DO NOTHING;", conn);
+            cmd.Parameters.AddWithValue("username", username);
+
+            return cmd.ExecuteNonQuery() > 0;
         }
+
         public bool RemoveCoffer(string username)
         {
-            if (!_cofferBalances.ContainsKey(username)) return false;
-            _cofferBalances.Remove(username);
-            SaveBalances();
-            return true;
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand("DELETE FROM coffer WHERE username = @username;", conn);
+            cmd.Parameters.AddWithValue("username", username);
+
+            return cmd.ExecuteNonQuery() > 0;
         }
+
+        public long GetCofferBalance(string username)
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand("SELECT balance FROM coffer WHERE username = @username;", conn);
+            cmd.Parameters.AddWithValue("username", username);
+
+            var result = cmd.ExecuteScalar();
+            return result == null ? 0 : (long)result;
+        }
+
+        public long GetTotalBalance()
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand("SELECT SUM(balance) FROM coffer;", conn);
+            var result = cmd.ExecuteScalar();
+            return result == DBNull.Value ? 0 : (long)result;
+        }
+
+        public void AddToCoffer(string username, long amount)
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
+
+            var cmd = new NpgsqlCommand(
+                "UPDATE coffer SET balance = balance + @amount WHERE username = @username;", conn);
+            cmd.Parameters.AddWithValue("amount", amount);
+            cmd.Parameters.AddWithValue("username", username);
+
+            cmd.ExecuteNonQuery();
+        }
+
         public bool RemoveFromCoffer(string username, long amount)
         {
-            if (!_cofferBalances.ContainsKey(username)) return false;
-            if (_cofferBalances[username] < amount) return false;
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
 
-            _cofferBalances[username] -= amount;
-            SaveBalances();
+            var checkCmd = new NpgsqlCommand(
+                "SELECT balance FROM coffer WHERE username = @username;", conn);
+            checkCmd.Parameters.AddWithValue("username", username);
+
+            var currentBalance = (long?)(checkCmd.ExecuteScalar() ?? 0);
+
+            if (currentBalance < amount) return false;
+
+            var cmd = new NpgsqlCommand(
+                "UPDATE coffer SET balance = balance - @amount WHERE username = @username;", conn);
+            cmd.Parameters.AddWithValue("amount", amount);
+            cmd.Parameters.AddWithValue("username", username);
+
+            cmd.ExecuteNonQuery();
             return true;
-        }
-        public IEnumerable<string> GetAllCoffers() => _cofferBalances.Keys;
-        private class CofferData
-        {
-            public Dictionary<string, long> Coffers { get; set; } = new Dictionary<string, long>();
         }
     }
 }
