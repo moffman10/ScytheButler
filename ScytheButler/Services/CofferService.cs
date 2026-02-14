@@ -10,9 +10,29 @@ namespace ScytheButler.Services
 
         public CofferService()
         {
-            _connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-                                ?? throw new Exception("DATABASE_URL not found.");
+            var rawUri = Environment.GetEnvironmentVariable("DATABASE_URL")
+                         ?? throw new Exception("DATABASE_URL not found.");
+
+            _connectionString = ParseConnectionString(rawUri);
+
             InitializeDatabase();
+        }
+        private string ParseConnectionString(string uriString)
+        {
+            // If it's already in Key=Value format, return it
+            if (!uriString.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+                return uriString;
+
+            var uri = new Uri(uriString);
+            var userInfo = uri.UserInfo.Split(':');
+            var user = userInfo[0];
+            var password = userInfo.Length > 1 ? userInfo[1] : "";
+            var host = uri.Host;
+            var port = uri.Port > 0 ? uri.Port : 5432;
+            var database = uri.AbsolutePath.TrimStart('/');
+
+            // Railway usually requires SSL, so we include it here
+            return $"Host={host};Port={port};Database={database};Username={user};Password={password};SSL Mode=Require;Trust Server Certificate=true;";
         }
 
         private void InitializeDatabase()
