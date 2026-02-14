@@ -48,25 +48,46 @@ namespace ScytheButler.Commands
                 await RespondAsync($"❌ User `{username}` already exists.");
         }
         [SlashCommand("coffer-deposit", "Deposit gp into the coffer")]
-        public async Task DepositCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, int amount)
+        public async Task DepositCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, string amountInput)
         {
+            int amount;
+            try
+            {
+                amount = _cofferService.ParseAmount(amountInput);
+            }
+            catch
+            {
+                await RespondAsync("❌ Invalid amount format. Use numbers like `1000`, `10K`, `2.5M`.");
+                return;
+            }
+
             _cofferService.AddToCoffer(username, amount);
             int userTotal = _cofferService.GetCofferBalance(username);
-            await RespondAsync($"✅ Added {amount} coins to {username}, coffer now has: {userTotal} coins");
+            await RespondAsync($"✅ Added {amount:N0} coins to {username}, coffer now has: {userTotal:N0} coins");
         }
 
         [SlashCommand("coffer-withdraw", "Withdraw gp from the coffer")]
-        public async Task WithdrawCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, int amount)
+        public async Task WithdrawCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, string amountInput)
         {
+            int amount;
+            try
+            {
+                amount = _cofferService.ParseAmount(amountInput);
+            }
+            catch
+            {
+                await RespondAsync("❌ Invalid amount format. Use numbers like `1000`, `10K`, `2.5M`.");
+                return;
+            }
             bool success = _cofferService.RemoveFromCoffer(username, amount);
             if (success)
             {
                 int userTotal = _cofferService.GetCofferBalance(username);
-                await RespondAsync($"✅ Removed {amount} coins to {username}, coffer now has: {userTotal} coins");
+                await RespondAsync($"✅ Removed {amount:N0} coins to {username}, coffer now has: {userTotal:N0} coins");
             }
             else
             {
-                await RespondAsync($"❌ Not enough coins in the coffer to remove {amount}.");
+                await RespondAsync($"❌ Not enough coins in the coffer to remove {amount:N0}.");
             }
         }
     }

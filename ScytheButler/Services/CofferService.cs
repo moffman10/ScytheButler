@@ -18,6 +18,28 @@ namespace ScytheButler.Services
             _filePath = Path.GetFullPath(_filePath);
             LoadBalances();
         }
+
+        public int ParseAmount(string input)
+        {
+            input = input.Trim().ToUpper();
+
+            if (string.IsNullOrEmpty(input))
+                throw new ArgumentException("Amount cannot be empty.");
+
+            double number;
+
+            if (input.EndsWith("K"))
+                number = double.Parse(input[..^1]) * 1_000;
+            if (input.EndsWith("M"))
+                number = double.Parse(input[..^1]) * 1_000_000;
+            if (input.EndsWith("B"))
+                number = double.Parse(input[..^1]) * 1_000_000;
+            else
+                number = double.Parse(input);
+
+            return (int)number;
+        }
+
         public void LoadBalances()
         {
             if (File.Exists(_filePath))
