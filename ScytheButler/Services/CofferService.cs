@@ -81,7 +81,22 @@ namespace ScytheButler.Services
             var result = cmd.ExecuteScalar();
             return result == null ? 0 : (long)result;
         }
+        public List<string> GetAllCoffers()
+        {
+            using var conn = new NpgsqlConnection(_connectionString);
+            conn.Open();
 
+            var cmd = new NpgsqlCommand("SELECT username FROM coffer;", conn);
+
+            var result = new List<string>();
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                result.Add(reader.GetString(0));
+            }
+
+            return result;
+        }
         public long GetTotalBalance()
         {
             using var conn = new NpgsqlConnection(_connectionString);
