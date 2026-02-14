@@ -114,9 +114,12 @@ namespace ScytheButler.Services
             using var conn = new NpgsqlConnection(_connectionString);
             conn.Open();
 
-            var cmd = new NpgsqlCommand("SELECT SUM(balance) FROM coffer;", conn);
+            // Use COALESCE to handle nulls and convert the result safely
+            var cmd = new NpgsqlCommand("SELECT COALESCE(SUM(balance), 0) FROM coffer;", conn);
             var result = cmd.ExecuteScalar();
-            return result == DBNull.Value ? 0 : (long)result;
+
+            // Use Convert.ToInt64 instead of (long) to handle the decimal-to-long conversion
+            return result == null || result == DBNull.Value ? 0 : Convert.ToInt64(result);
         }
 
         public void AddToCoffer(string username, long amount)
