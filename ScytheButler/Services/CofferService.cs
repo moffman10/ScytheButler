@@ -1,44 +1,42 @@
-﻿using Npgsql;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Text.Json;
 
 namespace ScytheButler.Services
 {
     public class CofferService
     {
-        private readonly string _connectionString;
+        private readonly string _filePath;
 
-        public CofferService()
+        private Dictionary<string, long> _coffers;
+
+        public CofferService(string filePath = "Balance.json")
         {
-            var rawConnection = Environment.GetEnvironmentVariable("DATABASE_URL")
-                                ?? throw new Exception("DATABASE_URL not found.");
+            _filePath = filePath;
+            LoadCoffers();
+        }
 
-            // If it starts with postgres://, we must convert it for Npgsql
-            if (rawConnection.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase))
+        private void LoadCoffers()
+        {
+            if (File.Exists(_filePath))
             {
-                var uri = new Uri(rawConnection);
-                var userInfo = uri.UserInfo.Split(':');
-                _connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true;";
+                var json = File.ReadAllText(_filePath);
+                _coffers = JsonSerializer.Deserialize<Dictionary<string, long>>(json)
+                           ?? new Dictionary<string, long>();
             }
             else
             {
-                _connectionString = rawConnection;
+                _coffers = new Dictionary<string, long>();
+                SaveCoffers();
             }
-
-            InitializeDatabase();
         }
-        private void InitializeDatabase()
+
+        private void SaveCoffers()
         {
-            using var conn = new NpgsqlConnection(_connectionString);
-            conn.Open();
-
-            var cmd = new NpgsqlCommand(@"
-                CREATE TABLE IF NOT EXISTS coffer (
-                    username TEXT PRIMARY KEY,
-                    balance BIGINT NOT NULL
-                );", conn);
-
-            cmd.ExecuteNonQuery();
+            var json = JsonSerializer.Serialize(_coffers, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_filePath, json);
         }
 
         public long ParseAmount(string input)
@@ -58,102 +56,54 @@ namespace ScytheButler.Services
 
             return (long)(number * multiplier);
         }
-
         public bool AddCoffer(string username)
         {
-            using var conn = new NpgsqlConnection(_connectionString);
-            conn.Open();
-
-            var cmd = new NpgsqlCommand(
-                "INSERT INTO coffer (username, balance) VALUES (@username, 0) ON CONFLICT DO NOTHING;", conn);
-            cmd.Parameters.AddWithValue("username", username);
-
-            return cmd.ExecuteNonQuery() > 0;
+            if (_coffers.ContainsKey(username)) return false;
+            _coffers[username] = 0;
+            SaveCoffers();
+            return true;
         }
 
         public bool RemoveCoffer(string username)
         {
-            using var conn = new NpgsqlConnection(_connectionString);
-            conn.Open();
-
-            var cmd = new NpgsqlCommand("DELETE FROM coffer WHERE username = @username;", conn);
-            cmd.Parameters.AddWithValue("username", username);
-
-            return cmd.ExecuteNonQuery() > 0;
+            if (!_coffers.ContainsKey(username)) return false;
+            _coffers.Remove(username);
+            SaveCoffers();
+            return true;
         }
 
         public long GetCofferBalance(string username)
         {
-            using var conn = new NpgsqlConnection(_connectionString);
-            conn.Open();
-
-            var cmd = new NpgsqlCommand("SELECT balance FROM coffer WHERE username = @username;", conn);
-            cmd.Parameters.AddWithValue("username", username);
-
-            var result = cmd.ExecuteScalar();
-            return result == null ? 0 : (long)result;
+            return _coffers.TryGetValue(username, out var balance) ? balance : 0;
         }
+
         public List<string> GetAllCoffers()
         {
-            using var conn = new NpgsqlConnection(_connectionString);
-            conn.Open();
-
-            var cmd = new NpgsqlCommand("SELECT username FROM coffer;", conn);
-
-            var result = new List<string>();
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                result.Add(reader.GetString(0));
-            }
-
-            return result;
+            return new List<string>(_coffers.Keys);
         }
+
         public long GetTotalBalance()
         {
-            using var conn = new NpgsqlConnection(_connectionString);
-            conn.Open();
-
-            // Use COALESCE to handle nulls and convert the result safely
-            var cmd = new NpgsqlCommand("SELECT COALESCE(SUM(balance), 0) FROM coffer;", conn);
-            var result = cmd.ExecuteScalar();
-
-            // Use Convert.ToInt64 instead of (long) to handle the decimal-to-long conversion
-            return result == null || result == DBNull.Value ? 0 : Convert.ToInt64(result);
+            long total = 0;
+            foreach (var balance in _coffers.Values)
+                total += balance;
+            return total;
         }
 
         public void AddToCoffer(string username, long amount)
         {
-            using var conn = new NpgsqlConnection(_connectionString);
-            conn.Open();
-
-            var cmd = new NpgsqlCommand(
-                "UPDATE coffer SET balance = balance + @amount WHERE username = @username;", conn);
-            cmd.Parameters.AddWithValue("amount", amount);
-            cmd.Parameters.AddWithValue("username", username);
-
-            cmd.ExecuteNonQuery();
+            if (!_coffers.ContainsKey(username)) AddCoffer(username);
+            _coffers[username] += amount;
+            SaveCoffers();
         }
 
         public bool RemoveFromCoffer(string username, long amount)
         {
-            using var conn = new NpgsqlConnection(_connectionString);
-            conn.Open();
-
-            var checkCmd = new NpgsqlCommand(
-                "SELECT balance FROM coffer WHERE username = @username;", conn);
-            checkCmd.Parameters.AddWithValue("username", username);
-
-            var currentBalance = (long?)(checkCmd.ExecuteScalar() ?? 0);
-
+            if (!_coffers.TryGetValue(username, out var currentBalance)) return false;
             if (currentBalance < amount) return false;
 
-            var cmd = new NpgsqlCommand(
-                "UPDATE coffer SET balance = balance - @amount WHERE username = @username;", conn);
-            cmd.Parameters.AddWithValue("amount", amount);
-            cmd.Parameters.AddWithValue("username", username);
-
-            cmd.ExecuteNonQuery();
+            _coffers[username] -= amount;
+            SaveCoffers();
             return true;
         }
     }
