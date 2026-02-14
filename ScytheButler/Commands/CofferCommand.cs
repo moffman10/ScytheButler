@@ -1,0 +1,73 @@
+﻿using Discord;
+using Discord.Interactions;
+using ScytheButler.Services;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace ScytheButler.Commands
+{
+    public class CofferCommand : InteractionModuleBase<SocketInteractionContext>
+    {
+        private readonly CofferService _cofferService;
+
+        public CofferCommand(CofferService cofferService)
+        {
+            _cofferService = cofferService;
+        }
+
+
+        [SlashCommand("coffer-total", "Check the current clan coffer balance")]
+        public async Task TotalCoffer()
+        {
+            int total = _cofferService.GetTotalBalance();
+            await RespondAsync($"💰 The clan coffer currently has **{total} coins**.");
+        }
+        [SlashCommand("coffer-user", "Check the selected users coffer")]
+        public async Task UserCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username)
+        {
+            int balance = _cofferService.GetCofferBalance(username);
+            await RespondAsync($"💰 {username} has **{balance} coins**");
+        }
+        [SlashCommand("coffer-adduser", "Add a new user to the coffer database")]
+        public async Task AddNewCoffer(string username)
+        {
+            bool success = _cofferService.AddCoffer(username);
+            if (success)
+                await RespondAsync($"✅ Added new user `{username}` to the coffer.");
+            else
+                await RespondAsync($"❌ User `{username}` already exists.");
+        }
+        [SlashCommand("coffer-removeuser", "Remove a user to the coffer database.")]
+        public async Task removeCoffer(string username)
+        {
+            bool success = _cofferService.RemoveCoffer(username);
+            if (success)
+                await RespondAsync($"✅ Added new user `{username}` to the coffer.");
+            else
+                await RespondAsync($"❌ User `{username}` already exists.");
+        }
+        [SlashCommand("coffer-deposit", "Deposit gp into the coffer")]
+        public async Task DepositCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, int amount)
+        {
+            _cofferService.AddToCoffer(username, amount);
+            int userTotal = _cofferService.GetCofferBalance(username);
+            await RespondAsync($"✅ Added {amount} coins to {username}, coffer now has: {userTotal} coins");
+        }
+
+        [SlashCommand("coffer-withdraw", "Withdraw gp from the coffer")]
+        public async Task WithdrawCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, int amount)
+        {
+            bool success = _cofferService.RemoveFromCoffer(username, amount);
+            if (success)
+            {
+                int userTotal = _cofferService.GetCofferBalance(username);
+                await RespondAsync($"✅ Removed {amount} coins to {username}, coffer now has: {userTotal} coins");
+            }
+            else
+            {
+                await RespondAsync($"❌ Not enough coins in the coffer to remove {amount}.");
+            }
+        }
+    }
+}
