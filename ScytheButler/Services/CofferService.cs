@@ -13,7 +13,7 @@ namespace ScytheButler.Services
     {
         private readonly string _filePath = Path.Combine(AppContext.BaseDirectory,"..", "..", "..", "Balance.json");
 
-        private Dictionary<string, int> _cofferBalances;
+        private Dictionary<string, long> _cofferBalances;
         public CofferService()
         {
             _filePath = Path.GetFullPath(_filePath);
@@ -58,11 +58,11 @@ namespace ScytheButler.Services
                 string json = File.ReadAllText(_filePath);
 
                 var data = JsonSerializer.Deserialize<CofferData>(json);
-                _cofferBalances = data?.Coffers ?? new Dictionary<string, int>();
+                _cofferBalances = data?.Coffers ?? new Dictionary<string, long>();
             }
             else
             {
-                _cofferBalances = new Dictionary<string, int>();
+                _cofferBalances = new Dictionary<string, long>();
                 SaveBalances();
             }
         }
@@ -73,11 +73,11 @@ namespace ScytheButler.Services
             string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true});
             File.WriteAllText(_filePath, json);
         }
-        public int GetCofferBalance(string username)
+        public long GetCofferBalance(string username)
         {
             return _cofferBalances.ContainsKey(username) ? _cofferBalances[username] : 0;
         }
-        public int GetTotalBalance()
+        public long GetTotalBalance()
         {
             return _cofferBalances.Values.Sum();
         }
@@ -88,7 +88,7 @@ namespace ScytheButler.Services
             SaveBalances();
             return true;
         }
-        public void AddToCoffer(string username, int amount)
+        public void AddToCoffer(string username, long amount)
         {
             if (_cofferBalances.ContainsKey(username)) _cofferBalances[username] += amount; 
             else _cofferBalances[username] = amount;
@@ -102,7 +102,7 @@ namespace ScytheButler.Services
             SaveBalances();
             return true;
         }
-        public bool RemoveFromCoffer(string username, int amount)
+        public bool RemoveFromCoffer(string username, long amount)
         {
             if (!_cofferBalances.ContainsKey(username)) return false;
             if (_cofferBalances[username] < amount) return false;
@@ -114,7 +114,7 @@ namespace ScytheButler.Services
         public IEnumerable<string> GetAllCoffers() => _cofferBalances.Keys;
         private class CofferData
         {
-            public Dictionary<string, int> Coffers { get; set; } = new Dictionary<string, int>();
+            public Dictionary<string, long> Coffers { get; set; } = new Dictionary<string, long>();
         }
     }
 }

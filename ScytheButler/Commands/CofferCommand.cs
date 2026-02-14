@@ -20,13 +20,13 @@ namespace ScytheButler.Commands
         [SlashCommand("coffer-total", "Check the current clan coffer balance")]
         public async Task TotalCoffer()
         {
-            int total = _cofferService.GetTotalBalance();
+            long total = _cofferService.GetTotalBalance();
             await RespondAsync($"💰 The clan coffer currently has **{total} coins**.");
         }
         [SlashCommand("coffer-user", "Check the selected users coffer")]
         public async Task UserCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username)
         {
-            int balance = _cofferService.GetCofferBalance(username);
+            long balance = _cofferService.GetCofferBalance(username);
             await RespondAsync($"💰 {username} has **{balance} coins**");
         }
         [SlashCommand("coffer-adduser", "Add a new user to the coffer database")]
@@ -50,7 +50,7 @@ namespace ScytheButler.Commands
         [SlashCommand("coffer-deposit", "Deposit gp into the coffer")]
         public async Task DepositCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, string amountInput)
         {
-            int amount;
+            long amount;
             try
             {
                 amount = _cofferService.ParseAmount(amountInput);
@@ -62,14 +62,14 @@ namespace ScytheButler.Commands
             }
 
             _cofferService.AddToCoffer(username, amount);
-            int userTotal = _cofferService.GetCofferBalance(username);
+            long userTotal = _cofferService.GetCofferBalance(username);
             await RespondAsync($"✅ Added {amount:N0} coins to {username}, coffer now has: {userTotal:N0} coins");
         }
 
         [SlashCommand("coffer-withdraw", "Withdraw gp from the coffer")]
         public async Task WithdrawCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, string amountInput)
         {
-            int amount;
+            long amount;
             try
             {
                 amount = _cofferService.ParseAmount(amountInput);
@@ -82,7 +82,7 @@ namespace ScytheButler.Commands
             bool success = _cofferService.RemoveFromCoffer(username, amount);
             if (success)
             {
-                int userTotal = _cofferService.GetCofferBalance(username);
+                long userTotal = _cofferService.GetCofferBalance(username);
                 await RespondAsync($"✅ Removed {amount:N0} coins to {username}, coffer now has: {userTotal:N0} coins");
             }
             else
