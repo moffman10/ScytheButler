@@ -93,11 +93,13 @@ namespace ScytheButler.Services
         {
             return new Dictionary<string, long>(_coffers);
         }
-        public void AddToCoffer(string username, long amount)
+        public bool AddToCoffer(string username, long amount)
         {
-            if (!_coffers.ContainsKey(username)) AddCoffer(username);
+            if (!_coffers.ContainsKey(username)) return false;
+
             _coffers[username] += amount;
             SaveCoffers();
+            return true;
         }
 
         public bool RemoveFromCoffer(string username, long amount)

@@ -74,6 +74,7 @@ namespace ScytheButler.Commands
         [SlashCommand("coffer-deposit", "Deposit gp into the coffer")]
         public async Task DepositCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, string amountInput)
         {
+            // Parse the amount
             long amount;
             try
             {
@@ -81,14 +82,23 @@ namespace ScytheButler.Commands
             }
             catch
             {
-                await RespondAsync("❌ Invalid amount format. Use numbers like `1000`, `10K`, `2.5M`.");
+                await RespondAsync("❌ Invalid amount format. Use numbers like `1000`, `10K`, `2.5M`.", ephemeral: true);
                 return;
             }
 
-            _cofferService.AddToCoffer(username, amount);
+            // Try to add to coffer safely
+            bool success = _cofferService.AddToCoffer(username, amount);
+            if (!success)
+            {
+                await RespondAsync($"❌ User `{username}` was not found in the coffer.", ephemeral: true);
+                return;
+            }
+
+            // Get updated balance
             long userTotal = _cofferService.GetCofferBalance(username);
-            await RespondAsync($"✅ Added {amount:N0} coins to {username}, coffer now has: {userTotal:N0} coins");
+            await RespondAsync($"✅ Added {amount:N0} coins to **{username}**, coffer now has: {userTotal:N0} coins");
         }
+
 
         [SlashCommand("coffer-withdraw", "Withdraw gp from the coffer")]
         public async Task WithdrawCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, string amountInput)
