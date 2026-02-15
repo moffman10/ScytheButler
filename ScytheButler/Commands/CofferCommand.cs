@@ -21,7 +21,10 @@ namespace ScytheButler.Commands
         public async Task TotalCoffer()
         {
             long total = _cofferService.GetTotalBalance();
-            await RespondAsync($"💰 The clan coffer currently has **{total:N0} coins**.");
+
+            var embed = new EmbedBuilder().WithTitle("💰 Clan Coffer Balance").WithDescription($"The clan coffer currently has **{total:N0} coins**.").WithColor(Color.Gold).WithFooter(footer =>footer.Text = $"Requested by {Context.User.Username}").WithCurrentTimestamp().Build();
+
+            await RespondAsync(embed: embed);
         }
         [SlashCommand("coffer-user", "Check the selected users coffer")]
         public async Task UserCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username)
