@@ -21,9 +21,30 @@ namespace ScytheButler.Commands
         public async Task TotalCoffer()
         {
             long total = _cofferService.GetTotalBalance();
+            var balances = _cofferService.GetAllBalances();
 
-            var embed = new EmbedBuilder().WithTitle("💰 Clan Coffer Balance").WithDescription($"The clan coffer currently has **{total:N0} coins**.").WithColor(Color.Gold).WithFooter(footer =>footer.Text = $"Requested by {Context.User.Username}").WithCurrentTimestamp().Build();
+            var embedBuilder = new EmbedBuilder().WithTitle("💰 Clan Coffer Balance").WithColor(Color.Gold).WithCurrentTimestamp();
 
+            embedBuilder.AddField("Total Coffer", $"**{total:N0} coins**", inline: false);
+
+            if (balances.Count == 0)
+            {
+                embedBuilder.AddField("Contributions", "No contributions yet.", inline: false);
+            }
+            else
+            {
+                // Build a simple breakdown
+                var breakdown = string.Join("\n",
+                    balances.OrderByDescending(x => x.Value)
+                            .Select(x => $"**{x.Key}** — {x.Value:N0} coins"));
+
+                // Truncate if too long
+                if (breakdown.Length > 1024)
+                    breakdown = breakdown.Substring(0, 1020) + "...";
+
+                embedBuilder.AddField("Contributions", breakdown, inline: false);
+            }
+            var embed = embedBuilder.Build();
             await RespondAsync(embed: embed);
         }
         [SlashCommand("coffer-user", "Check the selected users coffer")]

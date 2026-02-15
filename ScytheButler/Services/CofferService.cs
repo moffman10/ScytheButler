@@ -89,7 +89,10 @@ namespace ScytheButler.Services
                 total += balance;
             return total;
         }
-
+        public Dictionary<string, long> GetAllBalances()
+        {
+            return new Dictionary<string, long>(_coffers);
+        }
         public void AddToCoffer(string username, long amount)
         {
             if (!_coffers.ContainsKey(username)) AddCoffer(username);
