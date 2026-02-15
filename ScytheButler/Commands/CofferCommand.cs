@@ -29,7 +29,7 @@ namespace ScytheButler.Commands
 
             if (balances.Count == 0)
             {
-                embedBuilder.AddField("Bank", "No banks holding GP yet.", inline: false);
+                embedBuilder.AddField("Bank", "No banks holding data yet.", inline: false);
             }
             else
             {
@@ -42,7 +42,7 @@ namespace ScytheButler.Commands
                 if (breakdown.Length > 1024)
                     breakdown = breakdown.Substring(0, 1020) + "...";
 
-                embedBuilder.AddField("Contributions", breakdown, inline: false);
+                embedBuilder.AddField("Bank", breakdown, inline: false);
             }
             var embed = embedBuilder.Build();
             await RespondAsync(embed: embed);
