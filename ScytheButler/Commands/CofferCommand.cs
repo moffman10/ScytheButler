@@ -29,7 +29,7 @@ namespace ScytheButler.Commands
 
             if (balances.Count == 0)
             {
-                embedBuilder.AddField("Bank", "No contributions yet.", inline: false);
+                embedBuilder.AddField("Bank", "No banks holding GP yet.", inline: false);
             }
             else
             {
