@@ -1,13 +1,15 @@
 ﻿using Discord;
-using Discord.WebSocket;
 using Discord.Interactions;
+using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ScytheButler.Commands;
+using ScytheButler.Data;
+using ScytheButler.Services;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using ScytheButler.Services;
-using ScytheButler.Commands;
 
 namespace ScytheButler.Core
 {
@@ -34,7 +36,15 @@ namespace ScytheButler.Core
 
             _interactions = new InteractionService(_client.Rest);
 
-            _services = new ServiceCollection().AddSingleton(_client).AddSingleton(_interactions).AddSingleton(new CofferService()).AddSingleton<CofferAutoCompleteHandler>().BuildServiceProvider();
+            _services = new ServiceCollection()
+    .AddSingleton(_client)
+    .AddSingleton(_interactions)
+    .AddDbContext<AppDbContext>(options =>
+        options.UseSqlServer(config.GetConnectionString("DefaultConnection")))
+    .AddScoped<CofferService>()                    
+    .AddSingleton<CofferAutoCompleteHandler>()
+    .BuildServiceProvider();
+
         }
 
         public async Task RunAsync()

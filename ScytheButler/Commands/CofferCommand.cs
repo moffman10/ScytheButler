@@ -1,9 +1,8 @@
 ﻿using Discord;
 using Discord.Interactions;
 using ScytheButler.Services;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ScytheButler.Commands
 {
@@ -16,113 +15,167 @@ namespace ScytheButler.Commands
             _cofferService = cofferService;
         }
 
-
-        [SlashCommand("coffer-total", "Check the current clan coffer balance")]
+        [SlashCommand("coffer-total", "Show the total clan coffer and breakdown per bank.")]
         public async Task TotalCoffer()
         {
-            long total = _cofferService.GetTotalBalance();
+            double total = _cofferService.GetTotalBalance();
             var balances = _cofferService.GetAllBalances();
 
-            var embedBuilder = new EmbedBuilder().WithTitle("💰 Clan Coffer Balance").WithColor(Color.Gold).WithCurrentTimestamp();
-
-            embedBuilder.AddField("Total Coffer", $"**{total:N0} coins**", inline: false);
+            var embed = new EmbedBuilder()
+                .WithTitle("💰 Clan Coffer Balance")
+                .WithColor(Color.Gold)
+                .WithCurrentTimestamp()
+                .AddField("Total Coffer", $"**{total:N0} coins**", inline: false);
 
             if (balances.Count == 0)
             {
-                embedBuilder.AddField("Banks", "No banks holding data yet.", inline: false);
+                embed.AddField("Banks", "No banks holding data yet.", inline: false);
             }
             else
             {
-                // Build a simple breakdown
                 var breakdown = string.Join("\n",
                     balances.OrderByDescending(x => x.Value)
                             .Select(x => $"**{x.Key}** — {x.Value:N0} coins"));
 
-                // Truncate if too long
                 if (breakdown.Length > 1024)
                     breakdown = breakdown.Substring(0, 1020) + "...";
 
-                embedBuilder.AddField("Banks", breakdown, inline: false);
+                embed.AddField("Banks", breakdown, inline: false);
             }
-            var embed = embedBuilder.Build();
-            await RespondAsync(embed: embed);
+
+            await RespondAsync(embed: embed.Build());
         }
-        [SlashCommand("coffer-user", "Check the selected users coffer")]
+
+        [SlashCommand("coffer-user", "Show a specific user's coffer balance.")]
         public async Task UserCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username)
         {
-            long balance = _cofferService.GetCofferBalance(username);
-            await RespondAsync($"💰 {username} has **{balance:N0} coins**");
+            double balance = _cofferService.GetCofferBalance(username);
+
+            var embed = new EmbedBuilder()
+                .WithTitle($"💰 {username}'s Coffer")
+                .WithDescription($"{username} has **{balance:N0} coins**")
+                .WithColor(Color.DarkBlue)
+                .WithCurrentTimestamp();
+
+            await RespondAsync(embed: embed.Build());
         }
-        [SlashCommand("coffer-adduser", "Add a new user to the coffer database")]
+
+        [SlashCommand("coffer-adduser", "Add a new bank/user to the coffer database.")]
         public async Task AddNewCoffer(string username)
         {
             bool success = _cofferService.AddCoffer(username);
+
+            var embed = new EmbedBuilder()
+                .WithColor(success ? Color.Green : Color.Red)
+                .WithCurrentTimestamp();
+
             if (success)
-                await RespondAsync($"✅ Added new user `{username}` to the coffer.");
+                embed.WithTitle("✅ User Added")
+                     .WithDescription($"`{username}` has been added to the coffer database.");
             else
-                await RespondAsync($"❌ User `{username}` already exists.");
+                embed.WithTitle("❌ User Exists")
+                     .WithDescription($"`{username}` already exists in the coffer database.");
+
+            await RespondAsync(embed: embed.Build());
         }
-        [SlashCommand("coffer-removeuser", "Remove a user to the coffer database.")]
-        public async Task removeCoffer(string username)
+
+        [SlashCommand("coffer-removeuser", "Remove a bank/user from the coffer database.")]
+        public async Task RemoveCoffer(string username)
         {
             bool success = _cofferService.RemoveCoffer(username);
+
+            var embed = new EmbedBuilder()
+                .WithColor(success ? Color.Green : Color.Red)
+                .WithCurrentTimestamp();
+
             if (success)
-                await RespondAsync($"✅ Added new user `{username}` to the coffer.");
+                embed.WithTitle("✅ User Removed")
+                     .WithDescription($"`{username}` has been removed from the coffer database.");
             else
-                await RespondAsync($"❌ User `{username}` already exists.");
+                embed.WithTitle("❌ User Not Found")
+                     .WithDescription($"`{username}` does not exist in the coffer database.");
+
+            await RespondAsync(embed: embed.Build());
         }
-        [SlashCommand("coffer-deposit", "Deposit gp into the coffer")]
+
+        [SlashCommand("coffer-deposit", "Deposit coins into a user's coffer.")]
         public async Task DepositCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, string amountInput)
         {
-            // Parse the amount
-            long amount;
+            double amount;
             try
             {
                 amount = _cofferService.ParseAmount(amountInput);
             }
             catch
             {
-                await RespondAsync("❌ Invalid amount format. Use numbers like `1000`, `10K`, `2.5M`.", ephemeral: true);
+                var embedError = new EmbedBuilder()
+                    .WithTitle("❌ Invalid Amount")
+                    .WithDescription("Use numbers like `1000`, `10K`, or `2.5M`.")
+                    .WithColor(Color.Red)
+                    .WithCurrentTimestamp();
+                await RespondAsync(embed: embedError.Build(), ephemeral: true);
                 return;
             }
 
-            // Try to add to coffer safely
             bool success = _cofferService.AddToCoffer(username, amount);
+            var embed = new EmbedBuilder().WithCurrentTimestamp();
+
             if (!success)
             {
-                await RespondAsync($"❌ User `{username}` was not found in the coffer.", ephemeral: true);
-                return;
-            }
-
-            // Get updated balance
-            long userTotal = _cofferService.GetCofferBalance(username);
-            await RespondAsync($"✅ Added {amount:N0} coins to **{username}**, coffer now has: {userTotal:N0} coins");
-        }
-
-
-        [SlashCommand("coffer-withdraw", "Withdraw gp from the coffer")]
-        public async Task WithdrawCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, string amountInput)
-        {
-            long amount;
-            try
-            {
-                amount = _cofferService.ParseAmount(amountInput);
-            }
-            catch
-            {
-                await RespondAsync("❌ Invalid amount format. Use numbers like `1000`, `10K`, `2.5M`.");
-                return;
-            }
-            bool success = _cofferService.RemoveFromCoffer(username, amount);
-            if (success)
-            {
-                long userTotal = _cofferService.GetCofferBalance(username);
-                await RespondAsync($"✅ Removed {amount:N0} coins to {username}, coffer now has: {userTotal:N0} coins");
+                embed.WithTitle("❌ Deposit Failed")
+                     .WithDescription($"User `{username}` was not found in the coffer.")
+                     .WithColor(Color.Red);
             }
             else
             {
-                await RespondAsync($"❌ Not enough coins in the coffer to remove {amount:N0}.");
+                double userTotal = _cofferService.GetCofferBalance(username);
+                embed.WithTitle("✅ Deposit Successful")
+                     .WithDescription($"Added **{amount:N0} coins** to `{username}`'s coffer.\n" +
+                                      $"New balance: **{userTotal:N0} coins**")
+                     .WithColor(Color.Green);
             }
+
+            await RespondAsync(embed: embed.Build());
+        }
+
+        [SlashCommand("coffer-withdraw", "Withdraw coins from a user's coffer.")]
+        public async Task WithdrawCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, string amountInput)
+        {
+            double amount;
+            try
+            {
+                amount = _cofferService.ParseAmount(amountInput);
+            }
+            catch
+            {
+                var embedError = new EmbedBuilder()
+                    .WithTitle("❌ Invalid Amount")
+                    .WithDescription("Use numbers like `1000`, `10K`, or `2.5M`.")
+                    .WithColor(Color.Red)
+                    .WithCurrentTimestamp();
+                await RespondAsync(embed: embedError.Build(), ephemeral: true);
+                return;
+            }
+
+            bool success = _cofferService.RemoveFromCoffer(username, amount);
+            var embed = new EmbedBuilder().WithCurrentTimestamp();
+
+            if (!success)
+            {
+                embed.WithTitle("❌ Withdrawal Failed")
+                     .WithDescription($"Not enough coins in `{username}`'s coffer to remove **{amount:N0} coins**.")
+                     .WithColor(Color.Red);
+            }
+            else
+            {
+                double userTotal = _cofferService.GetCofferBalance(username);
+                embed.WithTitle("✅ Withdrawal Successful")
+                     .WithDescription($"Removed **{amount:N0} coins** from `{username}`'s coffer.\n" +
+                                      $"New balance: **{userTotal:N0} coins**")
+                     .WithColor(Color.Green);
+            }
+
+            await RespondAsync(embed: embed.Build());
         }
     }
 }

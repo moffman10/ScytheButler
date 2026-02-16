@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ScytheButler.Data;
+using ScytheButler.Models;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -8,37 +10,11 @@ namespace ScytheButler.Services
 {
     public class CofferService
     {
-        private readonly string _filePath;
-
-        private Dictionary<string, long> _coffers;
-
-        public CofferService(string filePath = "Balance.json")
+        private readonly AppDbContext _db;
+        public CofferService(AppDbContext db)
         {
-            _filePath = filePath;
-            LoadCoffers();
+            _db = db;
         }
-
-        private void LoadCoffers()
-        {
-            if (File.Exists(_filePath))
-            {
-                var json = File.ReadAllText(_filePath);
-                _coffers = JsonSerializer.Deserialize<Dictionary<string, long>>(json)
-                           ?? new Dictionary<string, long>();
-            }
-            else
-            {
-                _coffers = new Dictionary<string, long>();
-                SaveCoffers();
-            }
-        }
-
-        private void SaveCoffers()
-        {
-            var json = JsonSerializer.Serialize(_coffers, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_filePath, json);
-        }
-
         public long ParseAmount(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
@@ -56,59 +32,59 @@ namespace ScytheButler.Services
 
             return (long)(number * multiplier);
         }
-        public bool AddCoffer(string username)
+        public bool AddCoffer(string bank)
         {
-            if (_coffers.ContainsKey(username)) return false;
-            _coffers[username] = 0;
-            SaveCoffers();
+            if (_db.Balances.Any(b => b.Bank == bank)) return false;
+            _db.Balances.Add(new BalanceEntry { Bank = bank, Value = 0 });
+            _db.SaveChanges();
             return true;
         }
 
-        public bool RemoveCoffer(string username)
+        public bool RemoveCoffer(string bank)
         {
-            if (!_coffers.ContainsKey(username)) return false;
-            _coffers.Remove(username);
-            SaveCoffers();
+            var entry = _db.Balances.SingleOrDefault(b => b.Bank == bank);
+            if (entry == null) return false;
+            _db.Balances.Remove(entry);
+            _db.SaveChanges();
             return true;
         }
 
-        public long GetCofferBalance(string username)
+        public double GetCofferBalance(string bank)
         {
-            return _coffers.TryGetValue(username, out var balance) ? balance : 0;
+            var entry = _db.Balances.SingleOrDefault(b => b.Bank == bank);
+            return entry?.Value ?? 0;
+
         }
 
         public List<string> GetAllCoffers()
         {
-            return new List<string>(_coffers.Keys);
+            return _db.Balances.Select(b => b.Bank).ToList();
         }
 
-        public long GetTotalBalance()
+        public double GetTotalBalance()
         {
-            long total = 0;
-            foreach (var balance in _coffers.Values)
-                total += balance;
-            return total;
+            return _db.Balances.Sum(b => b.Value);
         }
-        public Dictionary<string, long> GetAllBalances()
+        public Dictionary<string, double> GetAllBalances()
         {
-            return new Dictionary<string, long>(_coffers);
+            return _db.Balances.ToDictionary(b => b.Bank, b => b.Value);
         }
-        public bool AddToCoffer(string username, long amount)
+        public bool AddToCoffer(string bank, double amount)
         {
-            if (!_coffers.ContainsKey(username)) return false;
+            var entry = _db.Balances.SingleOrDefault(b => b.Bank == bank);
+            if (entry == null) return false;
 
-            _coffers[username] += amount;
-            SaveCoffers();
+            entry.Value += amount;
+            _db.SaveChanges();
             return true;
         }
-
-        public bool RemoveFromCoffer(string username, long amount)
+        public bool RemoveFromCoffer(string bank, double amount)
         {
-            if (!_coffers.TryGetValue(username, out var currentBalance)) return false;
-            if (currentBalance < amount) return false;
+            var entry = _db.Balances.SingleOrDefault(b => b.Bank == bank);
+            if (entry == null || entry.Value < amount) return false;
 
-            _coffers[username] -= amount;
-            SaveCoffers();
+            entry.Value -= amount;
+            _db.SaveChanges();
             return true;
         }
     }
