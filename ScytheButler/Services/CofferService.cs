@@ -106,7 +106,8 @@ namespace ScytheButler.Services
         }
         public List<string> GetAllReasons()
         {
-            var path = Path.Combine("Data", "reasons.txt");
+            var path = Path.Combine(Directory.GetCurrentDirectory(),"..","..","..","Data", "reasons.txt");
+            path = Path.GetFullPath(path);
             if (!File.Exists(path))
                 return new List<string>();
 
