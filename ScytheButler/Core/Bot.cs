@@ -43,6 +43,7 @@ namespace ScytheButler.Core
         options.UseSqlServer(config.GetConnectionString("DefaultConnection")))
     .AddScoped<CofferService>()                    
     .AddSingleton<CofferAutoCompleteHandler>()
+    .AddSingleton<ReasonAutocompleteHandler>()
     .BuildServiceProvider();
 
         }

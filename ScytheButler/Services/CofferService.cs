@@ -1,4 +1,6 @@
-﻿using ScytheButler.Data;
+﻿using Discord;
+using Microsoft.Extensions.FileSystemGlobbing;
+using ScytheButler.Data;
 using ScytheButler.Models;
 using System;
 using System.Collections.Generic;
@@ -105,7 +107,6 @@ namespace ScytheButler.Services
         public List<string> GetAllReasons()
         {
             var path = Path.Combine("Data", "reasons.txt");
-
             if (!File.Exists(path))
                 return new List<string>();
 
