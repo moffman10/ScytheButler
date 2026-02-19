@@ -6,7 +6,8 @@ namespace ScytheButler.Data
 {
     public class AppDbContext : DbContext
     {
-        public DbSet<BalanceEntry> Balances { get; set; } = null!;
+        public DbSet<Balance> Balances { get; set; } = null!;
+        public DbSet<Transaction> Transactions { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
@@ -14,8 +15,8 @@ namespace ScytheButler.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<BalanceEntry>()
-                .HasKey(b => b.Bank);
+            modelBuilder.Entity<Balance>().HasKey(b => b.Bank);
+            modelBuilder.Entity<Transaction>().HasKey(t => t.Id);
         }
     }
 }

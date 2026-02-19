@@ -93,15 +93,24 @@ namespace ScytheButler.Commands
                      .WithDescription($"`{username}` has been removed from the coffer database.");
             else
                 embed.WithTitle("❌ User Not Found")
-                     .WithDescription($"`{username}` does not exist in the coffer database.");
+                     .WithDescription($"`{username}` does not exist in the coffer database."); 
 
             await RespondAsync(embed: embed.Build());
         }
 
         [SlashCommand("coffer-deposit", "Deposit coins into a user's coffer.")]
-        public async Task DepositCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, string amountInput)
+        public async Task DepositCoffer(
+    [Autocomplete(typeof(CofferAutoCompleteHandler))] string bank,
+    string amountInput,
+    [Choice("Donation", "Donation")]
+    [Choice("Buy-In", "Buy-In")]
+    string type,
+    [Autocomplete(typeof(ReasonAutocompleteHandler))] string reason,
+    string username
+)
         {
             double amount;
+
             try
             {
                 amount = _cofferService.ParseAmount(amountInput);
@@ -113,33 +122,61 @@ namespace ScytheButler.Commands
                     .WithDescription("Use numbers like `1000`, `10K`, or `2.5M`.")
                     .WithColor(Color.Red)
                     .WithCurrentTimestamp();
+
                 await RespondAsync(embed: embedError.Build(), ephemeral: true);
                 return;
             }
 
-            bool success = _cofferService.AddToCoffer(username, amount);
+            var validReasons = _cofferService.GetAllReasons();
+
+            if (!validReasons.Contains(reason))
+            {
+                await RespondAsync("❌ Invalid reason selected.", ephemeral: true);
+                return;
+            }
+
+            bool success = _cofferService.AddToCoffer(bank, amount);
+
             var embed = new EmbedBuilder().WithCurrentTimestamp();
 
             if (!success)
             {
                 embed.WithTitle("❌ Deposit Failed")
-                     .WithDescription($"User `{username}` was not found in the coffer.")
+                     .WithDescription($"User `{bank}` was not found in the coffer.")
                      .WithColor(Color.Red);
+
+                await RespondAsync(embed: embed.Build());
+                return;
             }
-            else
-            {
-                double userTotal = _cofferService.GetCofferBalance(username);
-                embed.WithTitle("✅ Deposit Successful")
-                     .WithDescription($"Added **{amount:N0} coins** to `{username}`'s coffer.\n" +
-                                      $"New balance: **{userTotal:N0} coins**")
-                     .WithColor(Color.Green);
-            }
+
+            await _cofferService.AddTransactionAsync(
+                username,
+                amount,
+                type,
+                reason,
+                bank
+            );
+
+            double userTotal = _cofferService.GetCofferBalance(bank);
+
+            embed.WithTitle("✅ Deposit Successful")
+                 .WithDescription(
+                    $"Added **{amount:N0} coins** to `{bank}`'s coffer.\n\n" +
+                    $"**Type:** {type}\n" +
+                    $"**Reason:** {reason}\n\n" +
+                    $"New balance: **{userTotal:N0} coins**")
+                 .WithColor(Color.Green);
 
             await RespondAsync(embed: embed.Build());
         }
 
         [SlashCommand("coffer-withdraw", "Withdraw coins from a user's coffer.")]
-        public async Task WithdrawCoffer([Autocomplete(typeof(CofferAutoCompleteHandler))] string username, string amountInput)
+        public async Task WithdrawCoffer( [Autocomplete(typeof(CofferAutoCompleteHandler))] string bank,
+               string amountInput,
+               [Choice("Payout", "Payout")][Choice("Refund", "Refund")] string type,
+               [Autocomplete(typeof(ReasonAutocompleteHandler))] string reason,
+               string username
+        )
         {
             double amount;
             try
@@ -153,27 +190,48 @@ namespace ScytheButler.Commands
                     .WithDescription("Use numbers like `1000`, `10K`, or `2.5M`.")
                     .WithColor(Color.Red)
                     .WithCurrentTimestamp();
+
                 await RespondAsync(embed: embedError.Build(), ephemeral: true);
                 return;
             }
 
-            bool success = _cofferService.RemoveFromCoffer(username, amount);
+            var validReasons = _cofferService.GetAllReasons();
+            if (!validReasons.Contains(reason))
+            {
+                await RespondAsync("❌ Invalid reason selected.", ephemeral: true);
+                return;
+            }
+
+            bool success = _cofferService.RemoveFromCoffer(bank, amount);
             var embed = new EmbedBuilder().WithCurrentTimestamp();
 
             if (!success)
             {
                 embed.WithTitle("❌ Withdrawal Failed")
-                     .WithDescription($"Not enough coins in `{username}`'s coffer to remove **{amount:N0} coins**.")
+                     .WithDescription($"Not enough coins in `{bank}`'s coffer to remove **{amount:N0} coins**.")
                      .WithColor(Color.Red);
+
+                await RespondAsync(embed: embed.Build());
+                return;
             }
-            else
-            {
-                double userTotal = _cofferService.GetCofferBalance(username);
-                embed.WithTitle("✅ Withdrawal Successful")
-                     .WithDescription($"Removed **{amount:N0} coins** from `{username}`'s coffer.\n" +
-                                      $"New balance: **{userTotal:N0} coins**")
-                     .WithColor(Color.Green);
-            }
+
+            await _cofferService.AddTransactionAsync(
+                username,
+                -amount, 
+                type,
+                reason,
+                bank
+            );
+
+            double userTotal = _cofferService.GetCofferBalance(bank);
+
+            embed.WithTitle("✅ Withdrawal Successful")
+                 .WithDescription(
+                    $"Removed **{amount:N0} coins** from `{bank}`'s coffer.\n\n" +
+                    $"**Type:** {type}\n" +
+                    $"**Reason:** {reason}\n\n" +
+                    $"New balance: **{userTotal:N0} coins**")
+                 .WithColor(Color.Green);
 
             await RespondAsync(embed: embed.Build());
         }

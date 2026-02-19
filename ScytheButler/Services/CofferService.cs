@@ -35,7 +35,7 @@ namespace ScytheButler.Services
         public bool AddCoffer(string bank)
         {
             if (_db.Balances.Any(b => b.Bank == bank)) return false;
-            _db.Balances.Add(new BalanceEntry { Bank = bank, Value = 0 });
+            _db.Balances.Add(new Balance { Bank = bank, Value = 0 });
             _db.SaveChanges();
             return true;
         }
@@ -78,6 +78,21 @@ namespace ScytheButler.Services
             _db.SaveChanges();
             return true;
         }
+        public async Task AddTransactionAsync(string username, double amount, string type, string reason, string bank)
+        {
+            var transaction = new Transaction
+            {
+                Username = username,
+                Amount = amount,
+                Type = type,
+                Reason = reason,
+                Bank = bank,
+                Date = DateTime.Now
+            };
+
+            _db.Transactions.Add(transaction);
+            await _db.SaveChangesAsync();
+        }
         public bool RemoveFromCoffer(string bank, double amount)
         {
             var entry = _db.Balances.SingleOrDefault(b => b.Bank == bank);
@@ -86,6 +101,18 @@ namespace ScytheButler.Services
             entry.Value -= amount;
             _db.SaveChanges();
             return true;
+        }
+        public List<string> GetAllReasons()
+        {
+            var path = Path.Combine("Data", "reasons.txt");
+
+            if (!File.Exists(path))
+                return new List<string>();
+
+            return File.ReadAllLines(path)
+                       .Where(x => !string.IsNullOrWhiteSpace(x))
+                       .Select(x => x.Trim())
+                       .ToList();
         }
     }
 }
