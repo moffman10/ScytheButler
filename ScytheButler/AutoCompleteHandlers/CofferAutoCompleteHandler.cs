@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ScytheButler.Commands
+namespace ScytheButler.AutoCompleteHandlers
 {
     public class CofferAutoCompleteHandler : AutocompleteHandler
     {

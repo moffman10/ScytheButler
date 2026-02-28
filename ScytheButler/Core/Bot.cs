@@ -4,7 +4,8 @@ using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using ScytheButler.Commands;
+using Microsoft.Extensions.Http;
+using ScytheButler.AutoCompleteHandlers;
 using ScytheButler.Data;
 using ScytheButler.Services;
 using System;
@@ -19,15 +20,22 @@ namespace ScytheButler.Core
         private readonly InteractionService _interactions;
         private readonly IServiceProvider _services;
         private readonly string _token;
+        private readonly ulong _allowedRoleId;
 
         public Bot()
         {
             var config = new ConfigurationBuilder().AddUserSecrets<Bot>().Build();
 
             _token = config["DiscordToken"];
+            
 
             if (string.IsNullOrEmpty(_token))
                 throw new Exception("DiscordToken not found in user secrets!");
+
+            var roleIdString = config["AllowedRoleId"];
+
+            if (!ulong.TryParse(roleIdString, out _allowedRoleId))
+                throw new Exception("AllowedRoleId is missing or invalid in user secrets!");
 
             _client = new DiscordSocketClient(new DiscordSocketConfig
             {
@@ -37,13 +45,20 @@ namespace ScytheButler.Core
             _interactions = new InteractionService(_client.Rest);
 
             _services = new ServiceCollection()
+    .AddSingleton<IConfiguration>(config)
     .AddSingleton(_client)
     .AddSingleton(_interactions)
+
     .AddDbContext<AppDbContext>(options =>
         options.UseSqlServer(config.GetConnectionString("DefaultConnection")))
-    .AddScoped<CofferService>()                    
+
+    .AddScoped<CofferService>()
+    .AddSingleton<WiseOldManService>()
+
     .AddSingleton<CofferAutoCompleteHandler>()
     .AddSingleton<ReasonAutocompleteHandler>()
+    .AddSingleton<MetricAutocompleteHandler>()
+    
     .BuildServiceProvider();
 
         }

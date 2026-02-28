@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Interactions;
+using ScytheButler.AutoCompleteHandlers;
 using ScytheButler.Services;
 using System.Linq;
 using System.Threading.Tasks;
