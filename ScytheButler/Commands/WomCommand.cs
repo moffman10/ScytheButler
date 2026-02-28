@@ -6,6 +6,7 @@ using ScytheButler.AutoCompleteHandlers;
 using ScytheButler.Models;
 using ScytheButler.Services;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -31,7 +32,7 @@ namespace ScytheButler.Commands
             string StartDate,
             string EndDate,
             string? Participants = null, // comma-separated names
-            string? Teams = null,        // comma-separated team names
+            string? Teams = null,        // semicolon-separated teams: TeamName,participant1,participant2
             int? GroupId = null,
             string? GroupVerificationCode = null)
         {
@@ -70,22 +71,38 @@ namespace ScytheButler.Commands
                     return;
                 }
 
-                // Convert comma-separated participants to array
+                // Parse participants if provided
                 string[]? ParticipantsList = null;
                 if (!string.IsNullOrWhiteSpace(Participants))
                     ParticipantsList = Participants.Split(',', StringSplitOptions.RemoveEmptyEntries)
                                                    .Select(p => p.Trim())
                                                    .ToArray();
 
-                // Convert comma-separated teams to array
-                string[]? TeamsList = null;
+                // Parse teams if provided
+                Team[]? TeamList = null;
                 if (!string.IsNullOrWhiteSpace(Teams))
-                    TeamsList = Teams.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                                     .Select(t => t.Trim())
-                                     .ToArray();
+                {
+                    var teamsParsed = new List<Team>();
+                    
+                    var teamInputs = Teams.Split(';', StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var t in teamInputs)
+                    {
+                        // First value is team name, rest are participants
+                        var parts = t.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToArray();
+                        if (parts.Length > 0)
+                        {
+                            teamsParsed.Add(new Team
+                            {
+                                name = parts[0],
+                                participants = parts.Skip(1).ToArray()
+                            });
+                        }
+                    }
+                    TeamList = teamsParsed.ToArray();
+                }
 
                 var Result = await _wiseOldManService.CreateCompetitionAsync(
-                    Title, MetricEnum, Start, End, ParticipantsList, GroupId, GroupVerificationCode, TeamsList);
+                    Title, MetricEnum, Start, End, ParticipantsList, GroupId, GroupVerificationCode, TeamList);
 
                 await FollowupAsync(
                     $"✅ Competition **{Title}** created successfully!\n" +
@@ -93,7 +110,7 @@ namespace ScytheButler.Commands
                     $"Start: **{Start:yyyy-MM-dd}**\n" +
                     $"End: **{End:yyyy-MM-dd}**\n" +
                     (ParticipantsList != null ? $"Participants:\n{string.Join("\n", ParticipantsList)}\n" : "") +
-                    (TeamsList != null ? $"Teams:\n{string.Join("\n", TeamsList)}\n" : "") +
+                    (TeamList != null ? $"Teams:\n{string.Join("\n", TeamList.Select(t => $"{t.name}: {string.Join(", ", t.participants)}"))}\n" : "") +
                     $"```json\n{Result}\n```",
                     ephemeral: false
                 );
@@ -114,22 +131,28 @@ namespace ScytheButler.Commands
 
             try
             {
-                string[] participants;
-                string[] teams;
                 string Title = $"TileRaceCompetition XP Competition - {Team}";
                 Metric MetricEnum = Metric.Overall;
                 DateTime Start = DateTime.UtcNow;
                 DateTime End = DateTime.UtcNow.AddDays(14);
 
+                Team teamObj;
+
                 if (Team == "Team 1")
                 {
-                    participants = new string[] { "Stans iron", "tz-tok-tizm", "axle2024" };
-                    teams = new string[] { "Team 1" };
+                    teamObj = new Team
+                    {
+                        name = "Team 1",
+                        participants = new string[] { "Stans iron", "tz-tok-tizm", "axle2024" }
+                    };
                 }
                 else if (Team == "Team 2")
                 {
-                    participants = new string[] { "Vedr", "Oll0", "Joeverload", "Loveskippy", "GIM M0FFY" };
-                    teams = new string[] { "Team 2" };
+                    teamObj = new Team
+                    {
+                        name = "Team 2",
+                        participants = new string[] { "Vedr", "Oll0", "Joeverload", "Loveskippy", "GIM M0FFY" }
+                    };
                 }
                 else
                 {
@@ -138,7 +161,7 @@ namespace ScytheButler.Commands
                 }
 
                 var Result = await _wiseOldManService.CreateCompetitionAsync(
-                    Title, MetricEnum, Start, End, participants, null, null, teams);
+                    Title, MetricEnum, Start, End, null, null, null, new Team[] { teamObj });
 
                 await FollowupAsync(
                     $"✅ Quick competition created for **{Team}**!\n" +
@@ -146,8 +169,8 @@ namespace ScytheButler.Commands
                     $"Metric: **{MetricEnum}**\n" +
                     $"Start: **{Start:yyyy-MM-dd}**\n" +
                     $"End: **{End:yyyy-MM-dd}**\n" +
-                    $"Participants:\n{string.Join("\n", participants)}\n" +
-                    $"Teams:\n{string.Join("\n", teams)}\n" +
+                    $"Team: {teamObj.name}\n" +
+                    $"Participants: {string.Join(", ", teamObj.participants)}\n" +
                     $"```json\n{Result}\n```",
                     ephemeral: false
                 );
