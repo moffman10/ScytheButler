@@ -1,14 +1,13 @@
-﻿using Discord.Interactions;
+﻿using Discord;
+using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.VisualBasic;
 using ScytheButler.AutoCompleteHandlers;
 using ScytheButler.Models;
 using ScytheButler.Services;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ScytheButler.Commands
 {
@@ -27,14 +26,14 @@ namespace ScytheButler.Commands
 
         [SlashCommand("createcompetition", "Create a Wise Old Man Competition")]
         public async Task CreateCompetition(
-    string Title,
-    [Autocomplete(typeof(MetricAutocompleteHandler))] string Metric,
-    string StartDate,
-    string EndDate,
-    int? groupId,
-    string? groupVerificationCode,
-    string[]? Participants,
-    Team[]? teams)
+            string Title,
+            [Autocomplete(typeof(MetricAutocompleteHandler))] string Metric,
+            string StartDate,
+            string EndDate,
+            string? Participants = null, // comma-separated names
+            string? Teams = null,        // comma-separated team names
+            int? GroupId = null,
+            string? GroupVerificationCode = null)
         {
             await DeferAsync();
 
@@ -71,9 +70,33 @@ namespace ScytheButler.Commands
                     return;
                 }
 
-                var Result = await _wiseOldManService.CreateCompetitionAsync(Title, MetricEnum, Start, End, Participants, groupId, groupVerificationCode, teams);
+                // Convert comma-separated participants to array
+                string[]? ParticipantsList = null;
+                if (!string.IsNullOrWhiteSpace(Participants))
+                    ParticipantsList = Participants.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                   .Select(p => p.Trim())
+                                                   .ToArray();
 
-                await FollowupAsync($"✅ Competition **{Title}** created successfully!\nMetric: **{MetricEnum}**\nStart: **{Start:yyyy-MM-dd}**\nEnd: **{End:yyyy-MM-dd}**\n```json\n{Result}\n```", ephemeral: false);
+                // Convert comma-separated teams to array
+                string[]? TeamsList = null;
+                if (!string.IsNullOrWhiteSpace(Teams))
+                    TeamsList = Teams.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                     .Select(t => t.Trim())
+                                     .ToArray();
+
+                var Result = await _wiseOldManService.CreateCompetitionAsync(
+                    Title, MetricEnum, Start, End, ParticipantsList, GroupId, GroupVerificationCode, TeamsList);
+
+                await FollowupAsync(
+                    $"✅ Competition **{Title}** created successfully!\n" +
+                    $"Metric: **{MetricEnum}**\n" +
+                    $"Start: **{Start:yyyy-MM-dd}**\n" +
+                    $"End: **{End:yyyy-MM-dd}**\n" +
+                    (ParticipantsList != null ? $"Participants:\n{string.Join("\n", ParticipantsList)}\n" : "") +
+                    (TeamsList != null ? $"Teams:\n{string.Join("\n", TeamsList)}\n" : "") +
+                    $"```json\n{Result}\n```",
+                    ephemeral: false
+                );
             }
             catch (Exception Ex)
             {
@@ -92,26 +115,30 @@ namespace ScytheButler.Commands
             try
             {
                 string[] participants;
-                string Title = $"TileTaceCompetition XP Competition - {Team}";
+                string[] teams;
+                string Title = $"TileRaceCompetition XP Competition - {Team}";
                 Metric MetricEnum = Metric.Overall;
                 DateTime Start = DateTime.UtcNow;
                 DateTime End = DateTime.UtcNow.AddDays(14);
 
-                if(Team == "Team 1")
+                if (Team == "Team 1")
                 {
-                    participants = new string[] { "Stans iron", "tz-tok-tizm", "axle2024", "", "" };
+                    participants = new string[] { "Stans iron", "tz-tok-tizm", "axle2024" };
+                    teams = new string[] { "Team 1" };
                 }
                 else if (Team == "Team 2")
                 {
-                    participants = new string[] { "Vedr", "Oll0", "Joeverload", "Loveskippy", "GIM M0FFY", "" };
+                    participants = new string[] { "Vedr", "Oll0", "Joeverload", "Loveskippy", "GIM M0FFY" };
+                    teams = new string[] { "Team 2" };
                 }
                 else
                 {
                     await FollowupAsync($"❌ Invalid Team Input", ephemeral: true);
+                    return;
                 }
 
-                // Call the service
-                var Result = await _wiseOldManService.CreateCompetitionAsync(Title, MetricEnum, Start, End, null, null,null,null);
+                var Result = await _wiseOldManService.CreateCompetitionAsync(
+                    Title, MetricEnum, Start, End, participants, null, null, teams);
 
                 await FollowupAsync(
                     $"✅ Quick competition created for **{Team}**!\n" +
@@ -119,6 +146,8 @@ namespace ScytheButler.Commands
                     $"Metric: **{MetricEnum}**\n" +
                     $"Start: **{Start:yyyy-MM-dd}**\n" +
                     $"End: **{End:yyyy-MM-dd}**\n" +
+                    $"Participants:\n{string.Join("\n", participants)}\n" +
+                    $"Teams:\n{string.Join("\n", teams)}\n" +
                     $"```json\n{Result}\n```",
                     ephemeral: false
                 );
