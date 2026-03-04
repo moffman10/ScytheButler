@@ -11,8 +11,8 @@ namespace ScytheButler.Models
     {
         public string Title { get; set; }
         public Metric Metric{ get; set; }
-        public DateTime StartAt { get; set; }
-        public DateTime EndAt { get; set; }
+        public DateTime StartsAt { get; set; }
+        public DateTime EndsAt { get; set; }
         public int? groupId { get; set; }
         public string? groupVerificationCode { get; set; }
         public string[]? Participants { get; set; }

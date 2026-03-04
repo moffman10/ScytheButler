@@ -133,26 +133,18 @@ namespace ScytheButler.Commands
             {
                 string Title = $"TileRaceCompetition XP Competition - {Team}";
                 Metric MetricEnum = Metric.Overall;
-                DateTime Start = DateTime.UtcNow;
+                DateTime Start = DateTime.UtcNow.AddMinutes(1);
                 DateTime End = DateTime.UtcNow.AddDays(14);
 
-                Team teamObj;
+                string[] participants;
 
                 if (Team == "Team 1")
                 {
-                    teamObj = new Team
-                    {
-                        name = "Team 1",
-                        participants = new string[] { "Stans iron", "tz-tok-tizm", "axle2024" }
-                    };
+                    participants = new string[] { "Stans iron", "tz-tok-tizm", "axle2024", "Lost in 2oo5", "TheRNGofApvl", "Agnostus GL" };
                 }
                 else if (Team == "Team 2")
                 {
-                    teamObj = new Team
-                    {
-                        name = "Team 2",
-                        participants = new string[] { "Vedr", "Oll0", "Joeverload", "Loveskippy", "GIM M0FFY" }
-                    };
+                    participants = new string[] { "Vedr", "Oll0", "Joeverload", "Loveskippy", "GIM M0FFY", "Lainezor" };
                 }
                 else
                 {
@@ -161,7 +153,7 @@ namespace ScytheButler.Commands
                 }
 
                 var Result = await _wiseOldManService.CreateCompetitionAsync(
-                    Title, MetricEnum, Start, End, null, null, null, new Team[] { teamObj });
+                    Title, MetricEnum, Start, End, participants, null, null, null);
 
                 await FollowupAsync(
                     $"✅ Quick competition created for **{Team}**!\n" +
@@ -169,8 +161,7 @@ namespace ScytheButler.Commands
                     $"Metric: **{MetricEnum}**\n" +
                     $"Start: **{Start:yyyy-MM-dd}**\n" +
                     $"End: **{End:yyyy-MM-dd}**\n" +
-                    $"Team: {teamObj.name}\n" +
-                    $"Participants: {string.Join(", ", teamObj.participants)}\n" +
+                    $"Participants: {string.Join(", ", participants)}\n" +
                     $"```json\n{Result}\n```",
                     ephemeral: false
                 );

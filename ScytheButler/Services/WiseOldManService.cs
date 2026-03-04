@@ -25,8 +25,8 @@ namespace ScytheButler.Services
             {
                 Title = title,
                 Metric = metric,
-                StartAt = startAt,
-                EndAt = endAt,
+                StartsAt = startAt,
+                EndsAt = endAt,
                 Participants = participants,
                 groupId = groupId,
                 groupVerificationCode = groupVerificationCode,
@@ -36,7 +36,8 @@ namespace ScytheButler.Services
             var jsonOptions = new JsonSerializerOptions
             {
                 Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
 
             var json = JsonSerializer.Serialize(requestBody, jsonOptions);
