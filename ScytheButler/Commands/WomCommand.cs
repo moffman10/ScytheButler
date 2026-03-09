@@ -144,7 +144,7 @@ namespace ScytheButler.Commands
                 }
                 else if (Team == "Team 2")
                 {
-                    participants = new string[] { "Vedr", "Oll0", "Joeverload", "Loveskippy", "GIM M0FFY", "Lainezor" };
+                    participants = new string[] { "Vedr", "Oll0", "Joeverload", "Loveskippy", "GIM M0FFY", "Lainezorr" };
                 }
                 else
                 {
