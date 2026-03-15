@@ -2,6 +2,9 @@
 using Discord.Interactions;
 using ScytheButler.Services;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace ScytheButler.Commands
 {
@@ -17,26 +20,36 @@ namespace ScytheButler.Commands
         [SlashCommand("roll", "Roll dice using XdY format E.G. 3d6")]
         public async Task Roll(string dice)
         {
+            // Step 1: defer immediately
+            await DeferAsync();
+
             try
             {
-                var result = _diceService.RollDice(dice);
+                // Step 2: heavy work in background thread
+                var (rollData, imageStream) = await Task.Run(() =>
+                {
+                    var data = _diceService.RollDiceData(dice);
+                    var image = _diceService.GenerateDiceImage(data.Rolls);
+                    var stream = new MemoryStream();
+                    image.SaveAsPng(stream);
+                    stream.Position = 0;
+                    return (data, stream);
+                });
 
-                using var stream = new MemoryStream();
-
-                result.Image.SaveAsPng(stream);
-                stream.Position = 0;
-
+                // Step 3: send followup with image
                 var embed = new EmbedBuilder()
                     .WithAuthor(Context.User.Username, Context.User.GetAvatarUrl())
                     .WithTitle("🎲 Dice Roll")
-                    .WithDescription($"Rolled **{dice}**\nResults: {string.Join(", ", result.Rolls)}\n**Total: {result.Total}**")
+                    .WithDescription($"Rolled **{dice}**\nResults: {string.Join(", ", rollData.Rolls)}\n**Total: {rollData.Total}**")
                     .WithColor(Discord.Color.DarkBlue)
                     .WithImageUrl("attachment://roll.png")
                     .Build();
+
+                await FollowupWithFileAsync(imageStream, "roll.png", embed: embed);
             }
             catch (Exception ex)
             {
-                await RespondAsync(ex.Message);
+                await FollowupAsync($"Error: {ex.Message}");
             }
         }
     }
