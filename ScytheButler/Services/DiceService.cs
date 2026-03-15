@@ -46,7 +46,7 @@ namespace ScytheButler.Services
         {
             int size = 56;       // smaller dice for faster generation
             int spacing = 4;
-            int buffer = 4;
+            int buffer = 10;
 
             int width = rolls.Count * (size + spacing) - spacing;
             int height = size + (buffer * 2);
