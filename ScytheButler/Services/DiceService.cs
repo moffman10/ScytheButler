@@ -78,7 +78,13 @@ namespace ScytheButler.Services
             float left = x + diePadding;
             float right = x + size - diePadding;
 
-            void DrawPip(float cx, float cy) => ctx.Fill(Color.Black, new EllipsePolygon(cx, cy, r));
+            void DrawPip(float cx, float cy)
+            {
+                var options = new DrawingOptions { GraphicsOptions = new GraphicsOptions { Antialias = true } };
+                ctx.Fill(options, Color.Black, new EllipsePolygon(MathF.Round(cx), MathF.Round(cy), r));
+            }
+
+
 
             switch (number)
             {
