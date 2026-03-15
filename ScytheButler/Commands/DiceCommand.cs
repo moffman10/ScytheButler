@@ -26,11 +26,13 @@ namespace ScytheButler.Commands
                 result.Image.SaveAsPng(stream);
                 stream.Position = 0;
 
-                await Context.Channel.SendFileAsync(
-                    stream,
-                    "roll.png",
-                    $"🎲 Rolling **{dice}**\nResults: {string.Join(", ", result.Rolls)}\n**Total: {result.Total}**"
-                );
+                var embed = new EmbedBuilder()
+                    .WithAuthor(Context.User.Username, Context.User.GetAvatarUrl())
+                    .WithTitle("🎲 Dice Roll")
+                    .WithDescription($"Rolled **{dice}**\nResults: {string.Join(", ", result.Rolls)}\n**Total: {result.Total}**")
+                    .WithColor(Discord.Color.DarkBlue)
+                    .WithImageUrl("attachment://roll.png")
+                    .Build();
             }
             catch (Exception ex)
             {
