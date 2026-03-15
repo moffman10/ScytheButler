@@ -20,12 +20,10 @@ namespace ScytheButler.Commands
         [SlashCommand("roll", "Roll dice using XdY format E.G. 3d6")]
         public async Task Roll(string dice)
         {
-            // Step 1: defer immediately
             await DeferAsync();
 
             try
             {
-                // Step 2: heavy work in background thread
                 var (rollData, imageStream) = await Task.Run(() =>
                 {
                     var data = _diceService.RollDiceData(dice);

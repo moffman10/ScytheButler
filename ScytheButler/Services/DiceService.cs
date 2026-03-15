@@ -69,23 +69,51 @@ namespace ScytheButler.Services
 
         private void DrawDicePips(IImageProcessingContext ctx, int number, float x, float y, float size)
         {
-            float r = size * 0.1f;
+            float padding = size * 0.1f;
+            float r = size * 0.1f;       
             float mid = x + size / 2;
-            float top = y + size * 0.25f;
-            float bottom = y + size * 0.75f;
-            float left = x + size * 0.25f;
-            float right = x + size * 0.75f;
+            float top = y + padding;
+            float bottom = y + size - padding;
+            float left = x + padding;
+            float right = x + size - padding;
 
-            void DrawPip(float cx, float cy) => ctx.Fill(SixLabors.ImageSharp.Color.Black, new EllipsePolygon(cx, cy, r));
+            void DrawPip(float cx, float cy) => ctx.Fill(Color.Black, new EllipsePolygon(cx, cy, r));
 
             switch (number)
             {
-                case 1: DrawPip(mid, (top + bottom) / 2); break;
-                case 2: DrawPip(left, top); DrawPip(right, bottom); break;
-                case 3: DrawPip(left, top); DrawPip(mid, (top + bottom) / 2); DrawPip(right, bottom); break;
-                case 4: DrawPip(left, top); DrawPip(right, top); DrawPip(left, bottom); DrawPip(right, bottom); break;
-                case 5: DrawPip(left, top); DrawPip(right, top); DrawPip(mid, (top + bottom) / 2); DrawPip(left, bottom); DrawPip(right, bottom); break;
-                case 6: DrawPip(left, top); DrawPip(left, (top + bottom) / 2); DrawPip(left, bottom); DrawPip(right, top); DrawPip(right, (top + bottom) / 2); DrawPip(right, bottom); break;
+                case 1:
+                    DrawPip(mid, (top + bottom) / 2);
+                    break;
+                case 2:
+                    DrawPip(left, top);
+                    DrawPip(right, bottom);
+                    break;
+                case 3:
+                    DrawPip(left, top);
+                    DrawPip(mid, (top + bottom) / 2);
+                    DrawPip(right, bottom);
+                    break;
+                case 4:
+                    DrawPip(left, top);
+                    DrawPip(right, top);
+                    DrawPip(left, bottom);
+                    DrawPip(right, bottom);
+                    break;
+                case 5:
+                    DrawPip(left, top);
+                    DrawPip(right, top);
+                    DrawPip(mid, (top + bottom) / 2);
+                    DrawPip(left, bottom);
+                    DrawPip(right, bottom);
+                    break;
+                case 6:
+                    DrawPip(left, top);
+                    DrawPip(left, (top + bottom) / 2);
+                    DrawPip(left, bottom);
+                    DrawPip(right, top);
+                    DrawPip(right, (top + bottom) / 2);
+                    DrawPip(right, bottom);
+                    break;
             }
         }
     }
