@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using ScytheButler.AutoCompleteHandlers;
+using ScytheButler.Commands;
 using ScytheButler.Data;
 using ScytheButler.Services;
 using System;
@@ -54,6 +55,7 @@ namespace ScytheButler.Core
 
     .AddScoped<CofferService>()
     .AddSingleton<WiseOldManService>()
+    .AddSingleton<DiceService>()
 
     .AddSingleton<CofferAutoCompleteHandler>()
     .AddSingleton<ReasonAutocompleteHandler>()

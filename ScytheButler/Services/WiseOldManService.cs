@@ -19,6 +19,95 @@ namespace ScytheButler.Services
             _apiKey = config["WiseOldManApiKey"];
         }
 
+        public async Task<CompetitionResult> CreateCompetitionFromInputAsync(
+    string title,
+    string metric,
+    string startDate,
+    string endDate,
+    string? participants,
+    string? teams,
+    int? groupId,
+    string? groupVerificationCode)
+        {
+            try
+            {
+                if (!Enum.TryParse<Metric>(metric, true, out var metricEnum))
+                    throw new Exception($"Invalid metric: {metric}");
+
+                if (!DateTime.TryParse(startDate, out var start))
+                    throw new Exception("Invalid start date. Use YYYY-MM-DD");
+
+                if (!DateTime.TryParse(endDate, out var end))
+                    throw new Exception("Invalid end date. Use YYYY-MM-DD");
+
+                if (end <= start)
+                    throw new Exception("End date must be after start date");
+
+                string[]? participantList = null;
+
+                if (!string.IsNullOrWhiteSpace(participants))
+                {
+                    participantList = participants
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim())
+                        .ToArray();
+                }
+
+                Team[]? teamList = null;
+
+                if (!string.IsNullOrWhiteSpace(teams))
+                {
+                    var parsed = new List<Team>();
+
+                    foreach (var teamInput in teams.Split(';', StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        var parts = teamInput
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(x => x.Trim())
+                            .ToArray();
+
+                        parsed.Add(new Team
+                        {
+                            name = parts[0],
+                            participants = parts.Skip(1).ToArray()
+                        });
+                    }
+
+                    teamList = parsed.ToArray();
+                }
+
+                var apiResult = await CreateCompetitionAsync(
+                    title,
+                    metricEnum,
+                    start,
+                    end,
+                    participantList,
+                    groupId,
+                    groupVerificationCode,
+                    teamList);
+
+                return new CompetitionResult
+                {
+                    Success = true,
+                    Title = title,
+                    Metric = metricEnum.ToString(),
+                    Start = start,
+                    End = end,
+                    Participants = participantList,
+                    Teams = teamList,
+                    ApiResponse = apiResult
+                };
+            }
+            catch (Exception ex)
+            {
+                return new CompetitionResult
+                {
+                    Success = false,
+                    Error = ex.Message
+                };
+            }
+        }
+
         public async Task<string> CreateCompetitionAsync(string title, Metric metric, DateTime startAt, DateTime endAt, string[]? participants, int? groupId, string? groupVerificationCode, Team[]? teams)
         {
             var requestBody = new CreateCompetitionRequest
