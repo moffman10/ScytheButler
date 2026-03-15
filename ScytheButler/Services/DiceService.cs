@@ -44,7 +44,7 @@ namespace ScytheButler.Services
         // Heavy method: generate image in background thread
         public Image<Rgba32> GenerateDiceImage(List<int> rolls)
         {
-            int size = 56;       // smaller dice for faster generation
+            int size = 72;     
             int spacing = 4;
             int buffer = 10;
 
