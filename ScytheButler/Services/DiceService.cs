@@ -80,11 +80,10 @@ namespace ScytheButler.Services
 
             void DrawPip(float cx, float cy)
             {
-                var options = new DrawingOptions { GraphicsOptions = new GraphicsOptions { Antialias = true } };
-                ctx.Fill(options, Color.Black, new EllipsePolygon(MathF.Round(cx), MathF.Round(cy), r));
+                ctx.Fill(Color.Black, new EllipsePolygon(MathF.Round(cx), MathF.Round(cy), r));
             }
-
-
+                
+               
 
             switch (number)
             {
