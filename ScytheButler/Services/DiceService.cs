@@ -46,9 +46,10 @@ namespace ScytheButler.Services
         {
             int size = 48;       // smaller dice for faster generation
             int spacing = 4;
+            int buffer = 2;
 
             int width = rolls.Count * (size + spacing) - spacing;
-            int height = size;
+            int height = size + (buffer * 2);
 
             var image = new Image<Rgba32>(width, height);
 
