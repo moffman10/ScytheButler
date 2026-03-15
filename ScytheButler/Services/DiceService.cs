@@ -45,12 +45,14 @@ namespace ScytheButler.Services
         public Image<Rgba32> GenerateDiceImage(List<int> rolls)
         {
             int size = 48;       // smaller dice for faster generation
-            int spacing = 0;
+            int spacing = 4;
 
             int width = rolls.Count * (size + spacing) - spacing;
             int height = size;
 
             var image = new Image<Rgba32>(width, height);
+
+            float diePadding = size * 0.15f;
 
             image.Mutate(ctx =>
             {
@@ -60,22 +62,21 @@ namespace ScytheButler.Services
 
                     ctx.Fill(SixLabors.ImageSharp.Color.White, new RectangleF(xOffset, 0, size, size));
                     ctx.Draw(SixLabors.ImageSharp.Color.Black, 2, new RectangleF(xOffset, 0, size, size));
-                    DrawDicePips(ctx, rolls[i], xOffset, 0, size);
+                    DrawDicePips(ctx, rolls[i], xOffset, 0, size, diePadding);
                 }
             });
 
             return image;
         }
 
-        private void DrawDicePips(IImageProcessingContext ctx, int number, float x, float y, float size)
+        private void DrawDicePips(IImageProcessingContext ctx, int number, float x, float y, float size, float diePadding)
         {
-            float padding = size * 0.1f;
             float r = size * 0.1f;       
             float mid = x + size / 2;
-            float top = y + padding;
-            float bottom = y + size - padding;
-            float left = x + padding;
-            float right = x + size - padding;
+            float top = y + diePadding;
+            float bottom = y + size - diePadding;
+            float left = x + diePadding;
+            float right = x + size - diePadding;
 
             void DrawPip(float cx, float cy) => ctx.Fill(Color.Black, new EllipsePolygon(cx, cy, r));
 
