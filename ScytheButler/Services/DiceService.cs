@@ -46,7 +46,7 @@ namespace ScytheButler.Services
         {
             int size = 56;       // smaller dice for faster generation
             int spacing = 4;
-            int buffer = 2;
+            int buffer = 4;
 
             int width = rolls.Count * (size + spacing) - spacing;
             int height = size + (buffer * 2);
@@ -84,7 +84,7 @@ namespace ScytheButler.Services
 
             void DrawPip(float cx, float cy)
             {
-                ctx.Fill(Color.Black, new EllipsePolygon(MathF.Round(cx), MathF.Round(cy), r));
+                ctx.Fill(Color.Black, new EllipsePolygon(cx, cy, r));
             }
                 
                
