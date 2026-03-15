@@ -73,6 +73,9 @@ namespace ScytheButler.Services
         {
             float r = size * 0.1f;       
             float mid = x + size / 2;
+
+            float safePadding = diePadding + r;
+
             float top = y + diePadding;
             float bottom = y + size - diePadding;
             float left = x + diePadding;
