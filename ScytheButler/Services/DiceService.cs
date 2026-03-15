@@ -73,6 +73,9 @@ namespace ScytheButler.Services
         {
             float r = size * 0.1f;       
             float mid = x + size / 2;
+
+            float safePadding = diePadding + r;
+
             float top = y + diePadding;
             float bottom = y + size - diePadding;
             float left = x + diePadding;
@@ -80,11 +83,10 @@ namespace ScytheButler.Services
 
             void DrawPip(float cx, float cy)
             {
-                var options = new DrawingOptions { GraphicsOptions = new GraphicsOptions { Antialias = true } };
-                ctx.Fill(options, Color.Black, new EllipsePolygon(MathF.Round(cx), MathF.Round(cy), r));
+                ctx.Fill(Color.Black, new EllipsePolygon(MathF.Round(cx), MathF.Round(cy), r));
             }
-
-
+                
+               
 
             switch (number)
             {
