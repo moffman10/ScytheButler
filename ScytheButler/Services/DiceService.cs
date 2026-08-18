@@ -1,4 +1,5 @@
 ﻿using ScytheButler.Models;
+using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
@@ -69,6 +70,19 @@ namespace ScytheButler.Services
 
             return image;
         }
+        private void DrawNumber(IImageProcessingContext ctx,int number,float centerX,float centerY,float size)
+        {
+            Font font = SystemFonts.CreateFont("Arial",size * 0.4f,FontStyle.Bold);
+
+            string text = number.ToString();
+
+            FontRectangle bounds = TextMeasurer.Measure(text, new RendererOptions(font));
+
+            float x = centerX - bounds.Width / 2;
+            float y = centerY - bounds.Height / 2;
+
+            ctx.DrawText(text,font,Color.Black,new PointF(x, y));
+        }
 
         private void DrawDicePips(IImageProcessingContext ctx, int number, float x, float y, float size, float diePadding)
         {
@@ -123,6 +137,10 @@ namespace ScytheButler.Services
                     DrawPip(right, top);
                     DrawPip(right, (top + bottom) / 2);
                     DrawPip(right, bottom);
+                    break;
+
+                default:
+                    DrawNumber(ctx, number, mid, (top + bottom) / 2, size);
                     break;
             }
         }

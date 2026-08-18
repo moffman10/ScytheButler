@@ -2,6 +2,7 @@
 using ScytheButler.Models;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -19,26 +20,18 @@ namespace ScytheButler.Services
             _apiKey = config["WiseOldManApiKey"];
         }
 
-        public async Task<CompetitionResult> CreateCompetitionFromInputAsync(
-    string title,
-    string metric,
-    string startDate,
-    string endDate,
-    string? participants,
-    string? teams,
-    int? groupId,
-    string? groupVerificationCode)
+        public async Task<CompetitionResult> CreateCompetitionFromInputAsync(string title,string metric,string startDate,string endDate,string? participants,string? teams,int? groupId,string? groupVerificationCode)
         {
             try
             {
                 if (!Enum.TryParse<Metric>(metric, true, out var metricEnum))
                     throw new Exception($"Invalid metric: {metric}");
 
-                if (!DateTime.TryParse(startDate, out var start))
-                    throw new Exception("Invalid start date. Use YYYY-MM-DD");
+                if (!DateTime.TryParse(startDate,CultureInfo.GetCultureInfo("en-GB"), DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var start))
+                    throw new Exception("Invalid start date.");
 
-                if (!DateTime.TryParse(endDate, out var end))
-                    throw new Exception("Invalid end date. Use YYYY-MM-DD");
+                if (!DateTime.TryParse(endDate, CultureInfo.GetCultureInfo("en-GB"), DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var end))
+                    throw new Exception("Invalid end date.");
 
                 if (end <= start)
                     throw new Exception("End date must be after start date");
@@ -76,15 +69,7 @@ namespace ScytheButler.Services
                     teamList = parsed.ToArray();
                 }
 
-                var apiResult = await CreateCompetitionAsync(
-                    title,
-                    metricEnum,
-                    start,
-                    end,
-                    participantList,
-                    groupId,
-                    groupVerificationCode,
-                    teamList);
+                var apiResult = await CreateCompetitionAsync(title,metricEnum,start,end,participantList,groupId,groupVerificationCode,teamList);
 
                 return new CompetitionResult
                 {
