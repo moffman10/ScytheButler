@@ -1,0 +1,81 @@
+﻿@page "/clan-roster"
+@rendermode InteractiveServer
+@using Dashboard.Web.Models.ClanRoster
+
+<PageTitle>Clan Roster</PageTitle>
+
+<div class="container mt-4">
+    <h1>Clan Roster</h1>
+
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else if (clanData == null)
+    {
+        <div class="d-flex align-items-center gap-2">
+            <div class="spinner-border text-primary" role="status"></div>
+            <span>Loading clan members from Wise Old Man...</span>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3>@clanData.Name</h3>
+            <span class="badge bg-primary fs-6">
+                @clanData.Memberships.Count Members
+            </span>
+        </div>
+
+        <table class="table table-striped table-hover shadow-sm align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th @onclick="() => SortBy(SortColumn.Name)" class="sortable-header">
+                        Member Name
+                        @SortIndicator(SortColumn.Name)
+                    </th>
+
+                    <th @onclick="() => SortBy(SortColumn.Rank)" class="sortable-header">
+                        Rank / Role
+                        @SortIndicator(SortColumn.Rank)
+                    </th>
+
+                    <th @onclick="() => SortBy(SortColumn.JoinedDate)" class="sortable-header">
+                        Joined Date
+                        @SortIndicator(SortColumn.JoinedDate)
+                    </th>
+
+                    <th @onclick="() => SortBy(SortColumn.TimeInClan)" class="sortable-header">
+                        Time in Clan
+                        @SortIndicator(SortColumn.TimeInClan)
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var member in GetSortedMembers())
+                {
+                    <tr>
+                        <td>
+                            <strong>@member.Player.DisplayName</strong>
+                        </td>
+
+                        <td>
+                            <span class="badge bg-secondary">
+                                @FormatRole(member.Role)
+                            </span>
+                        </td>
+
+                        <td>
+                            @member.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")
+                        </td>
+
+                        <td>
+                            @CalculateTimeInClan(member.CreatedAt)
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

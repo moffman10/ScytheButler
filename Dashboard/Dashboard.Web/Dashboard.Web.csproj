@@ -10,4 +10,10 @@
     <ProjectReference Include="..\Dashboard.ServiceDefaults\Dashboard.ServiceDefaults.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Components\components\" />
+    <Folder Include="Services\" />
+    <Folder Include="Resources\Images\Icons\" />
+  </ItemGroup>
+
 </Project>

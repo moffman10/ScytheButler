@@ -1,0 +1,17 @@
+﻿.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s ease;
+}
+
+    .sortable-header:hover {
+        --bs-table-bg-state: #495057 !important;
+        --bs-table-bg: #495057 !important;
+        background-color: #495057 !important;
+        background-image: none !important;
+    }
+
+.sort-indicator {
+    margin-left: 6px;
+    font-weight: bold;
+}
