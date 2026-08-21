@@ -1,12 +1,18 @@
 using Dashboard.ApiService.Services;
+using ScytheButler.Data; // Ensure this matches your AppDbContext namespace
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations
 builder.AddServiceDefaults();
-
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
+
+// 1. Enable Controllers
+builder.Services.AddControllers();
+
+// 2. Register DbContext (Update options to match your DB provider, e.g., AddDbContextPool or UseSqlServer/UseNpgsql)
+builder.Services.AddDbContext<AppDbContext>();
 
 // Register WomService with its HTTP Client
 builder.Services.AddHttpClient<WomService>();
@@ -23,43 +29,9 @@ if (app.Environment.IsDevelopment())
 // Default root check
 app.MapGet("/", () => "API service is running.");
 
-// Wise Old Man Clan Endpoint using configured default Group ID
-app.MapGet("/api/clan", async (IConfiguration config, WomService womService) =>
-{
-    var groupId = config.GetValue<int>("WiseOldMan:GroupId");
-
-    if (groupId <= 0)
-    {
-        return Results.Problem("WiseOldMan:GroupId is not configured in appsettings.json.");
-    }
-
-    try
-    {
-        var group = await womService.GetGroupDetailsAsync(groupId);
-        return group is not null ? Results.Ok(group) : Results.NotFound();
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex.Message);
-    }
-})
-.WithName("GetDefaultClanDetails");
-
-// Optional: Keep parameter route if you ever need to fetch other groups dynamically
-app.MapGet("/api/clan/{groupId:int}", async (int groupId, WomService womService) =>
-{
-    try
-    {
-        var group = await womService.GetGroupDetailsAsync(groupId);
-        return group is not null ? Results.Ok(group) : Results.NotFound();
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(ex.Message);
-    }
-})
-.WithName("GetClanDetails");
-
 app.MapDefaultEndpoints();
+
+// 3. Map Controller Endpoints (replaces inline app.MapGet("/api/clan/{groupId:int}"))
+app.MapControllers();
 
 app.Run();

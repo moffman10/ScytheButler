@@ -21,4 +21,8 @@
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ScytheButler.data\ScytheButler.data.csproj" />
+  </ItemGroup>
+
 </Project>

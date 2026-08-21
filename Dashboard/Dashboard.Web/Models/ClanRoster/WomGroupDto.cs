@@ -1,10 +1,10 @@
-﻿using static Dashboard.Web.Components.Pages.ClanRoster.ClanRoster;
-
-namespace Dashboard.Web.Models.ClanRoster
+﻿namespace Dashboard.Web.Models.ClanRoster
 {
     public class WomGroupDto
     {
+        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public DateTime? LastSyncedAt { get; set; }
         public List<WomMembershipDto> Memberships { get; set; } = new();
     }
 }

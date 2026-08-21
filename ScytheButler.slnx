@@ -3,5 +3,6 @@
   <Project Path="Dashboard/Dashboard.AppHost/Dashboard.AppHost.csproj" Id="087cc2e8-c409-4cbe-a50e-ae2a6e1c6b42" />
   <Project Path="Dashboard/Dashboard.ServiceDefaults/Dashboard.ServiceDefaults.csproj" />
   <Project Path="Dashboard/Dashboard.Web/Dashboard.Web.csproj" />
+  <Project Path="ScytheButler.data/ScytheButler.data.csproj" Id="4f3971c1-f247-4fba-a5cf-92df2bef7daa" />
   <Project Path="ScytheButler/ScytheButler.csproj" />
 </Solution>

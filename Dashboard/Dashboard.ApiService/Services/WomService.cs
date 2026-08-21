@@ -1,6 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
-using Dashboard.ApiService.Models;
+using ScytheButler.data.DatabaseModels.WomModels;
 
 namespace Dashboard.ApiService.Services;
 

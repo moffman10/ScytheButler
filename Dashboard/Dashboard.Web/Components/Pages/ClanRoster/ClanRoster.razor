@@ -5,20 +5,52 @@
 <PageTitle>Clan Roster</PageTitle>
 
 <div class="container mt-4">
-    <h1>Clan Roster</h1>
+    <!-- Header with Action Buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Clan Roster</h1>
+
+        <div class="d-flex align-items-center gap-2">
+            @if (lastSyncTime.HasValue)
+            {
+                <small class="text-muted me-2">
+                    Synced: @lastSyncTime.Value.ToLocalTime().ToString("g")
+                </small>
+            }
+
+            <button class="btn btn-outline-secondary btn-sm" @onclick="RefreshFromDatabaseAsync" disabled="@isUpdating">
+                Refresh DB
+            </button>
+
+            <button class="btn btn-primary btn-sm" @onclick="ForceUpdateFromWomAsync" disabled="@isUpdating">
+                @if (isUpdating)
+                {
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    <span>Updating...</span>
+                }
+                else
+                {
+                    <span>Update from WOM</span>
+                }
+            </button>
+        </div>
+    </div>
 
     @if (errorMessage != null)
     {
-        <div class="alert alert-danger">@errorMessage</div>
-    }
-    else if (clanData == null)
-    {
-        <div class="d-flex align-items-center gap-2">
-            <div class="spinner-border text-primary" role="status"></div>
-            <span>Loading clan members from Wise Old Man...</span>
+        <div class="alert alert-danger alert-dismissible fade show">
+            @errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
         </div>
     }
-    else
+
+    @if (clanData == null && isUpdating)
+    {
+        <div class="d-flex align-items-center gap-2 my-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <span>Fetching clan roster...</span>
+        </div>
+    }
+    else if (clanData != null)
     {
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3>@clanData.Name</h3>
@@ -31,51 +63,60 @@
             <thead class="table-dark">
                 <tr>
                     <th @onclick="() => SortBy(SortColumn.Name)" class="sortable-header">
-                        Member Name
-                        @SortIndicator(SortColumn.Name)
+                        Member Name @SortIndicator(SortColumn.Name)
                     </th>
-
                     <th @onclick="() => SortBy(SortColumn.Rank)" class="sortable-header">
-                        Rank / Role
-                        @SortIndicator(SortColumn.Rank)
+                        Rank / Role @SortIndicator(SortColumn.Rank)
                     </th>
-
                     <th @onclick="() => SortBy(SortColumn.JoinedDate)" class="sortable-header">
-                        Joined Date
-                        @SortIndicator(SortColumn.JoinedDate)
+                        Joined Date @SortIndicator(SortColumn.JoinedDate)
                     </th>
-
                     <th @onclick="() => SortBy(SortColumn.TimeInClan)" class="sortable-header">
-                        Time in Clan
-                        @SortIndicator(SortColumn.TimeInClan)
+                        Time in Clan @SortIndicator(SortColumn.TimeInClan)
                     </th>
                 </tr>
             </thead>
-
             <tbody>
-                @foreach (var member in GetSortedMembers())
+                @foreach (var member in GetPagedMembers())
                 {
                     <tr>
-                        <td>
-                            <strong>@member.Player.DisplayName</strong>
-                        </td>
-
-                        <td>
-                            <span class="badge bg-secondary">
-                                @FormatRole(member.Role)
-                            </span>
-                        </td>
-
-                        <td>
-                            @member.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")
-                        </td>
-
-                        <td>
-                            @CalculateTimeInClan(member.CreatedAt)
-                        </td>
+                        <td><strong>@member.Player.DisplayName</strong></td>
+                        <td><span class="badge bg-secondary">@FormatRole(member.Role)</span></td>
+                        <td>@member.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")</td>
+                        <td>@CalculateTimeInClan(member.CreatedAt)</td>
                     </tr>
                 }
             </tbody>
         </table>
+
+        <!-- Pagination Controls -->
+        @if (TotalPages > 1)
+        {
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="text-muted">
+                    Showing @GetStartIndex() to @GetEndIndex() of @clanData.Memberships.Count members
+                </span>
+
+                <nav aria-label="Clan Roster Pagination">
+                    <ul class="pagination mb-0">
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(currentPage - 1)">Previous</button>
+                        </li>
+
+                        @for (int i = 1; i <= TotalPages; i++)
+                        {
+                            var pageNum = i;
+                            <li class="page-item @(currentPage == pageNum ? "active" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(pageNum)">@pageNum</button>
+                            </li>
+                        }
+
+                        <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(currentPage + 1)">Next</button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        }
     }
 </div>

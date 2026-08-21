@@ -11,73 +11,106 @@
 
         private WomGroupDto? clanData;
         private string? errorMessage;
+        private bool isUpdating = false;
+        private DateTime? lastSyncTime;
+
+        // Replace with your actual WOM Group ID
+        private const int TargetGroupId = 13022;
 
         private SortColumn CurrentSortColumn = SortColumn.Name;
         private bool SortAscending = true;
 
+        private int currentPage = 1;
+        private int pageSize = 20;
+
+        private int TotalPages => clanData == null ? 0 : (int)Math.Ceiling((double)clanData.Memberships.Count / pageSize);
+
         private static readonly Dictionary<string, string> RankNames =
             new(StringComparer.OrdinalIgnoreCase)
             {
-            { "recruit", "1 Banana" },
-            { "corporal", "2 Banana" },
-            { "sergeant", "3 Banana" },
-            { "general", "1 Star" },
-            { "officer", "2 Star" },
-            { "commander", "3 Star" },
-            { "colonel", "1 Gem" },
-            { "brigadier", "2 Gem" },
-            { "admiral", "3 Gem" },
-            { "xerician", "Raid coach" },
-            { "illusionist", "Event staff" },
-            { "administrator", "Bronze Key" },
-            { "deputy_owner", "Silver Key" },
-            { "owner", "Gold Key" }
+                { "recruit", "1 Banana" },
+                { "corporal", "2 Banana" },
+                { "sergeant", "3 Banana" },
+                { "general", "1 Star" },
+                { "officer", "2 Star" },
+                { "commander", "3 Star" },
+                { "colonel", "1 Gem" },
+                { "brigadier", "2 Gem" },
+                { "admiral", "3 Gem" },
+                { "xerician", "Raid coach" },
+                { "illusionist", "Event staff" },
+                { "administrator", "Bronze Key" },
+                { "deputy_owner", "Silver Key" },
+                { "owner", "Gold Key" }
             };
 
         protected override async Task OnInitializedAsync()
         {
+            await LoadDataAsync(forceWomSync: false);
+        }
+
+        // Button action: Just pull from local DB
+        private async Task RefreshFromDatabaseAsync()
+        {
+            await LoadDataAsync(forceWomSync: false);
+        }
+
+        // Button action: Force WOM API fetch + DB upsert
+        private async Task ForceUpdateFromWomAsync()
+        {
+            await LoadDataAsync(forceWomSync: true);
+        }
+
+        private async Task LoadDataAsync(bool forceWomSync)
+        {
             try
             {
-                clanData = await Http.GetFromJsonAsync<WomGroupDto>("api/clan");
+                isUpdating = true;
+                errorMessage = null;
+
+                var response = await Http.GetFromJsonAsync<RosterResponseDto>(
+                    $"api/clan/{TargetGroupId}?forceSync={forceWomSync}"
+                );
+
+                if (response != null)
+                {
+                    clanData = response.ClanData;
+                    lastSyncTime = response.LastSyncedAt;
+                }
             }
             catch (Exception ex)
             {
-                errorMessage = $"Failed to fetch clan roster: {ex.Message}";
+                errorMessage = $"Failed to load roster data: {ex.Message}";
+            }
+            finally
+            {
+                isUpdating = false;
             }
         }
 
-        private string CalculateTimeInClan(DateTime joinedAt)
+        private void GoToPage(int page)
         {
-            if (joinedAt == DateTime.MinValue)
-                return "N/A";
-
-            var span = DateTime.UtcNow - joinedAt;
-
-            int years = span.Days / 365;
-            int months = (span.Days % 365) / 30;
-            int days = (span.Days % 365) % 30;
-
-            if (years > 0)
-                return $"{years}y {months}m {days}d";
-
-            if (months > 0)
-                return $"{months}m {days}d";
-
-            return $"{days} days";
+            if (page >= 1 && page <= TotalPages)
+            {
+                currentPage = page;
+            }
         }
 
-        private string FormatRole(string role)
-        {
-            if (string.IsNullOrWhiteSpace(role))
-                return "1 Banana";
+        private int GetStartIndex() => ((currentPage - 1) * pageSize) + 1;
 
-            return RankNames.TryGetValue(role, out var customRank)
-                ? customRank
-                : role;
+        private int GetEndIndex() => Math.Min(currentPage * pageSize, clanData?.Memberships.Count ?? 0);
+
+        private IEnumerable<WomMembershipDto> GetPagedMembers()
+        {
+            return GetSortedMembers()
+                .Skip((currentPage - 1) * pageSize)
+                .Take(pageSize);
         }
 
         private void SortBy(SortColumn column)
         {
+            currentPage = 1;
+
             if (CurrentSortColumn == column)
             {
                 SortAscending = !SortAscending;
@@ -123,6 +156,36 @@
 
                 _ => members
             };
+        }
+
+        private string CalculateTimeInClan(DateTime joinedAt)
+        {
+            if (joinedAt == DateTime.MinValue)
+                return "N/A";
+
+            var span = DateTime.UtcNow - joinedAt;
+
+            int years = span.Days / 365;
+            int months = (span.Days % 365) / 30;
+            int days = (span.Days % 365) % 30;
+
+            if (years > 0)
+                return $"{years}y {months}m {days}d";
+
+            if (months > 0)
+                return $"{months}m {days}d";
+
+            return $"{days} days";
+        }
+
+        private string FormatRole(string role)
+        {
+            if (string.IsNullOrWhiteSpace(role))
+                return "1 Banana";
+
+            return RankNames.TryGetValue(role, out var customRank)
+                ? customRank
+                : role;
         }
 
         private int GetRankOrder(string role)
