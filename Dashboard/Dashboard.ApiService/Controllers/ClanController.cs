@@ -1,5 +1,5 @@
 ﻿using Dashboard.ApiService.Services;
-using Dashboard.Web.Components.Pages.ClanRoster;
+using Dashboard.Web.Models.PlayerDetails;
 using Dashboard.Web.Models.ClanRoster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -64,6 +64,38 @@ public class ClanController : ControllerBase
         });
     }
 
+    [HttpGet("/api/player/{id}")]
+    public async Task<ActionResult<object>> GetPlayerById(int id)
+    {
+        var player = await _db.Players.FindAsync(id);
+
+        if (player == null)
+        {
+            return NotFound($"Player with ID {id} could not be found.");
+        }
+        var membership = await _db.Memberships.FirstOrDefaultAsync(m => m.PlayerId == id);
+
+        return Ok(new
+        {
+            Player = player,
+            Role = membership?.Role ?? "recruit"
+        });
+    }
+    [HttpPost("/api/player/{id}/notes")]
+    public async Task<IActionResult> UpdatePlayerNotes(int id, [FromBody] UpdateNotesDto dto)
+    {
+        var player = await _db.Players.FindAsync(id);
+        if (player == null)
+        {
+            return NotFound($"Player with ID {id} could not be found.");
+        }
+
+        player.Notes = dto.Notes;
+        await _db.SaveChangesAsync();
+
+        return Ok();
+    }
+
     private async Task UpsertGroupDataAsync(WomGroup freshGroup)
     {
         var syncTime = DateTime.UtcNow;
@@ -97,47 +129,75 @@ public class ClanController : ControllerBase
             existingGroup.LastSyncedAt = syncTime;
         }
 
-        // 2. Upsert Players & Memberships cleanly
+        // 2. Upsert Players & Memberships
         if (freshGroup.Memberships != null)
         {
             foreach (var membership in freshGroup.Memberships)
             {
+                if (membership.Player == null || membership.Player.Id == 0)
+                    continue;
+
+                int playerId = membership.Player.Id;
+
                 // Handle Player Entity
-                if (membership.Player != null)
+                var existingPlayer = await _db.Players.FindAsync(playerId);
+                if (existingPlayer == null)
                 {
-                    var existingPlayer = await _db.Players.FindAsync(membership.Player.Id);
-                    if (existingPlayer == null)
+                    var newPlayer = new WomPlayer
                     {
-                        _db.Players.Add(new WomPlayer
-                        {
-                            Id = membership.Player.Id,
-                            Username = membership.Player.Username,
-                            DisplayName = membership.Player.DisplayName
-                        });
-                    }
-                    else
-                    {
-                        existingPlayer.Username = membership.Player.Username;
-                        existingPlayer.DisplayName = membership.Player.DisplayName;
-                    }
+                        Id = playerId,
+                        Username = membership.Player.Username,
+                        DisplayName = membership.Player.DisplayName,
+                        Type = membership.Player.Type,
+                        Build = membership.Player.Build,
+                        Country = membership.Player.Country,
+                        Status = membership.Player.Status,
+                        Patron = membership.Player.Patron,
+                        Exp = membership.Player.Exp,
+                        Ehp = membership.Player.Ehp,
+                        Ehb = membership.Player.Ehb,
+                        RegisteredAt = membership.Player.RegisteredAt,
+                        UpdatedAt = membership.Player.UpdatedAt,
+                        CreatedAt = membership.CreatedAt
+                    };
+                    _db.Players.Add(newPlayer);
+                }
+                else
+                {
+                    existingPlayer.Username = membership.Player.Username;
+                    existingPlayer.DisplayName = membership.Player.DisplayName;
+                    existingPlayer.Type = membership.Player.Type;
+                    existingPlayer.Build = membership.Player.Build;
+                    existingPlayer.Country = membership.Player.Country;
+                    existingPlayer.Status = membership.Player.Status;
+                    existingPlayer.Patron = membership.Player.Patron;
+                    existingPlayer.Exp = membership.Player.Exp;
+                    existingPlayer.Ehp = membership.Player.Ehp;
+                    existingPlayer.Ehb = membership.Player.Ehb;
+                    existingPlayer.UpdatedAt = membership.Player.UpdatedAt;
+                    existingPlayer.CreatedAt = membership.CreatedAt;
+                      
                 }
 
                 // Handle Membership Entity
                 var existingMembership = await _db.Memberships
-                    .FirstOrDefaultAsync(m => m.PlayerId == membership.PlayerId && m.GroupId == freshGroup.Id);
+                    .FirstOrDefaultAsync(m => m.PlayerId == playerId && m.GroupId == freshGroup.Id);
 
                 if (existingMembership == null)
                 {
                     _db.Memberships.Add(new WomMembership
                     {
-                        PlayerId = membership.PlayerId,
+                        PlayerId = playerId,
                         GroupId = freshGroup.Id,
-                        Role = membership.Role
+                        Role = membership.Role,
+                        CreatedAt = membership.CreatedAt,
+                        UpdatedAt = membership.UpdatedAt 
                     });
                 }
                 else
                 {
                     existingMembership.Role = membership.Role;
+                    existingMembership.UpdatedAt = membership.UpdatedAt;
                 }
             }
         }

@@ -12,10 +12,14 @@ namespace ScytheButler.data.DatabaseModels.WomModels
         public string? Status { get; set; }
         public string? Country { get; set; }
         public bool Patron { get; set; }
-        public double Exp { get; set; }
+        public long Exp { get; set; }
         public double Ehp { get; set; }
         public double Ehb { get; set; }
-        public DateTime RegisteredAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public int Events { get; set; }
+        public DateTime? RegisteredAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+        public string? Notes { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 using Dashboard.ApiService.Services;
-using ScytheButler.Data; // Ensure this matches your AppDbContext namespace
+using Microsoft.EntityFrameworkCore;
+using ScytheButler.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +12,12 @@ builder.Services.AddOpenApi();
 // 1. Enable Controllers
 builder.Services.AddControllers();
 
-// 2. Register DbContext (Update options to match your DB provider, e.g., AddDbContextPool or UseSqlServer/UseNpgsql)
-builder.Services.AddDbContext<AppDbContext>();
+// 2. Fetch Connection String from Configuration (appsettings / User Secrets)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// 3. Register DbContext with SQL Server Provider
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(connectionString));
 
 // Register WomService with its HTTP Client
 builder.Services.AddHttpClient<WomService>();
@@ -31,7 +36,7 @@ app.MapGet("/", () => "API service is running.");
 
 app.MapDefaultEndpoints();
 
-// 3. Map Controller Endpoints (replaces inline app.MapGet("/api/clan/{groupId:int}"))
+// Map Controller Endpoints
 app.MapControllers();
 
 app.Run();

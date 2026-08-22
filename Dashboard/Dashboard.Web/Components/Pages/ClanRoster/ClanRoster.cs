@@ -2,6 +2,7 @@
 {
     using Dashboard.Web.Models.ClanRoster;
     using Microsoft.AspNetCore.Components;
+    using Dashboard.Web.Helpers;
     using System.Net.Http.Json;
 
     public partial class ClanRoster
@@ -14,35 +15,32 @@
         private bool isUpdating = false;
         private DateTime? lastSyncTime;
 
-        // Replace with your actual WOM Group ID
         private const int TargetGroupId = 13022;
 
         private SortColumn CurrentSortColumn = SortColumn.Name;
         private bool SortAscending = true;
 
         private int currentPage = 1;
-        private int pageSize = 20;
+        private int pageSize = 25;
 
-        private int TotalPages => clanData == null ? 0 : (int)Math.Ceiling((double)clanData.Memberships.Count / pageSize);
+        private int TotalPages => clanData == null ? 0 : (int)Math.Ceiling((double)TotalFilteredCount / pageSize);
 
-        private static readonly Dictionary<string, string> RankNames =
-            new(StringComparer.OrdinalIgnoreCase)
-            {
-                { "recruit", "1 Banana" },
-                { "corporal", "2 Banana" },
-                { "sergeant", "3 Banana" },
-                { "general", "1 Star" },
-                { "officer", "2 Star" },
-                { "commander", "3 Star" },
-                { "colonel", "1 Gem" },
-                { "brigadier", "2 Gem" },
-                { "admiral", "3 Gem" },
-                { "xerician", "Raid coach" },
-                { "illusionist", "Event staff" },
-                { "administrator", "Bronze Key" },
-                { "deputy_owner", "Silver Key" },
-                { "owner", "Gold Key" }
-            };
+        private string searchTerm = string.Empty;
+
+        protected string FormatRole(string role) => RankHelper.FormatRole(role);
+        protected string CalculateTimeInClan(DateTime joinedAt) => CalculateTimeInClanHelper.CalculateTimeInClan(joinedAt);
+
+        private IEnumerable<WomMembershipDto> GetFilteredMembers()
+        {
+            if (clanData == null)
+                return Enumerable.Empty<WomMembershipDto>();
+
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return clanData.Memberships;
+
+            return clanData.Memberships.Where(m => m.Player.DisplayName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+        private int TotalFilteredCount => GetFilteredMembers().Count();
 
         protected override async Task OnInitializedAsync()
         {
@@ -95,10 +93,15 @@
                 currentPage = page;
             }
         }
+        private void OnSearchInput(Microsoft.AspNetCore.Components.ChangeEventArgs e)
+        {
+            searchTerm = e.Value?.ToString() ?? string.Empty;
+            currentPage = 1;
+        }
 
-        private int GetStartIndex() => ((currentPage - 1) * pageSize) + 1;
+        private int GetStartIndex() => TotalFilteredCount == 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
 
-        private int GetEndIndex() => Math.Min(currentPage * pageSize, clanData?.Memberships.Count ?? 0);
+        private int GetEndIndex() => Math.Min(currentPage * pageSize, TotalFilteredCount);
 
         private IEnumerable<WomMembershipDto> GetPagedMembers()
         {
@@ -122,6 +125,7 @@
                 {
                     SortColumn.Name => true,
                     SortColumn.Rank => false,
+                    SortColumn.Events => false,
                     SortColumn.JoinedDate => true,
                     SortColumn.TimeInClan => true,
                     _ => true
@@ -134,7 +138,7 @@
             if (clanData == null)
                 return Enumerable.Empty<WomMembershipDto>();
 
-            IEnumerable<WomMembershipDto> members = clanData.Memberships;
+            IEnumerable<WomMembershipDto> members = GetFilteredMembers();
 
             return CurrentSortColumn switch
             {
@@ -145,6 +149,9 @@
                 SortColumn.Rank => SortAscending
                     ? members.OrderBy(m => GetRankOrder(m.Role))
                     : members.OrderByDescending(m => GetRankOrder(m.Role)),
+                SortColumn.Events => SortAscending 
+                    ? members.OrderBy(m => m.Player.Events)
+                    : members.OrderByDescending(m => m.Player.Events),
 
                 SortColumn.JoinedDate => SortAscending
                     ? members.OrderBy(m => m.CreatedAt)
@@ -158,41 +165,11 @@
             };
         }
 
-        private string CalculateTimeInClan(DateTime joinedAt)
-        {
-            if (joinedAt == DateTime.MinValue)
-                return "N/A";
-
-            var span = DateTime.UtcNow - joinedAt;
-
-            int years = span.Days / 365;
-            int months = (span.Days % 365) / 30;
-            int days = (span.Days % 365) % 30;
-
-            if (years > 0)
-                return $"{years}y {months}m {days}d";
-
-            if (months > 0)
-                return $"{months}m {days}d";
-
-            return $"{days} days";
-        }
-
-        private string FormatRole(string role)
-        {
-            if (string.IsNullOrWhiteSpace(role))
-                return "1 Banana";
-
-            return RankNames.TryGetValue(role, out var customRank)
-                ? customRank
-                : role;
-        }
-
         private int GetRankOrder(string role)
         {
             return role?.ToLowerInvariant() switch
             {
-                "bob" => 1,
+                "bob" => 1, 
                 "recruit" => 11,
                 "corporal" => 12,
                 "sergeant" => 13,

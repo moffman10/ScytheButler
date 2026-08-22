@@ -4,6 +4,7 @@
     {
         Name,
         Rank,
+        Events,
         JoinedDate,
         TimeInClan
     }

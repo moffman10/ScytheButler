@@ -1,0 +1,131 @@
+﻿@page "/player-details/{playerId:int}"
+@namespace Dashboard.Web.Components.Pages.PlayerDetails
+@rendermode InteractiveServer
+
+<PageTitle>Player Details - @(player?.DisplayName ?? "Loading...")</PageTitle>
+
+<div class="container-lg mt-5">
+    <button class="btn btn-outline-secondary mb-4 px-4 py-2 fw-semibold" @onclick="GoBack">
+        &larr; Back to Clan Roster
+    </button>
+
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show fs-5">
+            @errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+        </div>
+    }
+
+    @if (isLoading)
+    {
+        <div class="d-flex align-items-center gap-3 my-5 py-5 justify-content-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+            <span class="fs-4 text-muted">Loading player details...</span>
+        </div>
+    }
+    else if (player != null)
+    {
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-dark text-white py-4 px-4">
+                <h2 class="mb-0 display-6 fw-bold">@player.DisplayName</h2>
+            </div>
+            <div class="card-body p-5">
+                <div class="row g-4">
+
+                    <!-- Rank / Role -->
+                    <div class="col-md-12">
+                        <div class="p-4 border bg-light rounded-3 shadow-sm">
+                            <span class="text-muted d-block fs-5 mb-1">Rank</span>
+                            <strong class="fs-4">@(string.IsNullOrEmpty(playerRole) ? "N/A" : FormatRole(playerRole))</strong>
+                        </div>
+                    </div>
+                    <!-- Country -->
+                    <div class="col-md-4">
+                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
+                            <span class="text-muted d-block fs-5 mb-1">Country</span>
+                            <strong class="fs-4">@(string.IsNullOrWhiteSpace(player.Country) ? "N/A" : player.Country)</strong>
+                        </div>
+                    </div>
+
+                    <!-- Joined Date (Created At) -->
+                    <div class="col-md-4">
+                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
+                            <span class="text-muted d-block fs-5 mb-1">Joined Date</span>
+                            <strong class="fs-4">@(player.CreatedAt != DateTime.MinValue ? player.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy") : "N/A")</strong>
+                        </div>
+                    </div>
+
+                    <!-- Time in Clan -->
+                    <div class="col-md-4">
+                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
+                            <span class="text-muted d-block fs-5 mb-1">Time in Clan</span>
+                            <strong class="fs-4">@CalculateTimeInClan(player.CreatedAt)</strong>
+                        </div>
+                    </div>
+
+                    <!-- Experience (Exp) -->
+                    <div class="col-md-4">
+                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
+                            <span class="text-muted d-block fs-5 mb-1">Experience (Exp)</span>
+                            <strong class="fs-4">@player.Exp.ToString("N0")</strong>
+                        </div>
+                    </div>
+
+                    <!-- Efficient Hours Played (Ehp) -->
+                    <div class="col-md-4">
+                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
+                            <span class="text-muted d-block fs-5 mb-1">Efficient Hours Played (Ehp)</span>
+                            <strong class="fs-4">@player.Ehp.ToString("N2")</strong>
+                        </div>
+                    </div>
+
+                    <!-- Efficient Hours bossed (Ehb) -->
+                    <div class="col-md-4">
+                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
+                            <span class="text-muted d-block fs-5 mb-1">Efficient Bossing Hours (Ehb)</span>
+                            <strong class="fs-4">@player.Ehb.ToString("N2")</strong>
+                        </div>
+                    </div>
+
+                    <!-- Events -->
+                    <div class="col-md-12">
+                        <div class="p-4 border bg-light rounded-3 shadow-sm">
+                            <span class="text-muted d-block fs-5 mb-1">Events</span>
+                            <strong class="fs-4">@player.Events</strong>
+                        </div>
+                    </div>
+
+                    <!-- Editable Notes -->
+                    <div class="col-md-12">
+                        <div class="p-4 border bg-light rounded-3 shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted fs-5">Player Notes</span>
+                                <button class="btn btn-primary btn-sm px-3" @onclick="SaveNotesAsync" disabled="@isSavingNotes">
+                                    @if (isSavingNotes)
+                                    {
+                                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                        <span>Saving...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Save Notes</span>
+                                    }
+                                </button>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(statusMessage))
+                            {
+                                <div class="alert alert-success py-1 px-2 mb-2" role="alert">
+                                    <small>@statusMessage</small>
+                                </div>
+                            }
+
+                            <textarea class="form-control fs-5" rows="4" placeholder="Enter notes about this player here..." @bind="player.Notes"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

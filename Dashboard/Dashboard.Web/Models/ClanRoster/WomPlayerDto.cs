@@ -1,13 +1,19 @@
-﻿namespace Dashboard.Web.Models.ClanRoster
+﻿public class WomPlayerDto
 {
-    public class WomPlayerDto
-    {
-        public int Id { get; set; }
-        public string DisplayName { get; set; } = string.Empty;
-        public string Username { get; set; } = string.Empty;
-        public string? Country { get; set; }
-        public double Exp { get; set; }
-        public double Ehp { get; set; }
-        public double Ehb { get; set; }
-    }
+    public int Id { get; set; }
+    public string DisplayName { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string? Type { get; set; }
+    public string? Build { get; set; }
+    public string? Country { get; set; }
+    public string? Status { get; set; }
+    public bool Patron { get; set; }
+    public long Exp { get; set; }
+    public double Ehp { get; set; }
+    public double Ehb { get; set; }
+    public int Events { get; set; }
+    public DateTime? RegisteredAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public string? Notes { get; set; }
 }
