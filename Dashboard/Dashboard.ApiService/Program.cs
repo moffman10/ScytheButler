@@ -37,6 +37,17 @@ app.MapGet("/", () => "API service is running.");
 app.MapDefaultEndpoints();
 
 // Map Controller Endpoints
-app.MapControllers();
+try
+{
+    app.MapControllers();
+}
+catch (System.Reflection.ReflectionTypeLoadException ex)
+{
+    foreach (var loaderException in ex.LoaderExceptions)
+    {
+        Console.WriteLine($"LOADER EXCEPTION: {loaderException?.Message}");
+    }
+    throw;
+}
 
 app.Run();

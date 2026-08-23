@@ -49,6 +49,7 @@ namespace Dashboard.ApiService.Helpers
                             Exp = m.Player.Exp,
                             Ehp = m.Player.Ehp,
                             Ehb = m.Player.Ehb,
+                            Events = m.Player.Events,
                             RegisteredAt = m.Player.RegisteredAt,
                             UpdatedAt = m.Player.UpdatedAt,
                             CreatedAt = playerCreatedAt

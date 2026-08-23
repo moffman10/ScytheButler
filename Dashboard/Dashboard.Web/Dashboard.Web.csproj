@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <Folder Include="Components\components\" />
+    <Folder Include="Resources\Images\Backgrounds\" />
     <Folder Include="Services\" />
     <Folder Include="Resources\Images\Icons\" />
   </ItemGroup>

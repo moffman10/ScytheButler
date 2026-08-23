@@ -1,0 +1,119 @@
+﻿/* --- ScytheBound Player Details Theme --- */
+:root {
+    --sb-bg-dark: #121214;
+    --sb-card-bg: #1a1a24;
+    --sb-border: #421a1a;
+    --sb-crimson: #8b0000;
+    --sb-crimson-hover: #a50000;
+    --sb-gold: #f3c66f;
+    --sb-text-main: #ffffff;
+    --sb-text-muted: #c4c4d0;
+}
+
+/* Force dark background on the entire HTML / Body viewport */
+html, body {
+    background-color: var(--sb-bg-dark) !important;
+    color: var(--sb-text-main) !important;
+}
+
+/* Main Outer Card Container */
+.card {
+    background-color: var(--sb-card-bg) !important;
+    border: 1px solid rgba(139, 0, 0, 0.5) !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 20px rgba(139, 0, 0, 0.2), 0 1px 0 rgba(243, 198, 111, 0.2) inset !important;
+    color: var(--sb-text-main) !important;
+}
+
+/* Card Header with flipped left-to-right gradient (Red on left, dark on right) */
+.card-header {
+    background: linear-gradient(90deg, #8b0000 0%, rgba(139, 0, 0, 0.3) 45%, #121214 100%) !important;
+    border-bottom: 2px solid var(--sb-crimson) !important;
+    color: var(--sb-gold) !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Stat & Info Blocks */
+.bg-light {
+    background-color: #211e28 !important;
+    border: 1px solid rgba(139, 0, 0, 0.4) !important;
+    color: var(--sb-text-main) !important;
+    transition: all 0.25s ease-in-out;
+}
+
+    /* Hover state with flipped left-to-right gradient (Red on left, dark on right) */
+    .bg-light:hover {
+        background: linear-gradient(90deg, #8b0000 0%, rgba(139, 0, 0, 0.3) 45%, #121214 100%) !important;
+        border-color: rgba(139, 0, 0, 0.8) !important;
+        box-shadow: 0 6px 16px rgba(139, 0, 0, 0.4) !important;
+    }
+
+    .bg-light .text-muted {
+        color: var(--sb-text-muted) !important;
+    }
+
+    .bg-light strong,
+    .bg-light .fs-4 {
+        color: #ffffff !important;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+
+.text-muted {
+    color: var(--sb-text-muted) !important;
+}
+
+/* Primary Buttons */
+.btn-primary {
+    background: linear-gradient(90deg, #700000 45%, #8b0000 100%) !important;
+    border-color: #520000 !important;
+    color: #fff !important;
+    box-shadow: 0 3px 10px rgba(139, 0, 0, 0.5);
+}
+
+    .btn-primary:hover, .btn-primary:focus {
+        background: linear-gradient(90deg, #8b0000 45%, #a50000 100%) !important;
+        border-color: var(--sb-crimson) !important;
+        box-shadow: 0 5px 15px rgba(139, 0, 0, 0.7);
+    }
+
+/* "Back to Clan Roster" Button with Gold Gradient and NO shadow */
+.btn-outline-secondary {
+    color: var(--sb-text-main) !important;
+    border-color: rgba(243, 198, 111, 0.4) !important;
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    transition: all 0.2s ease-in-out;
+}
+
+    .btn-outline-secondary:hover {
+        background: linear-gradient(135deg, #f3c66f 0%, #c5a059 100%) !important;
+        border-color: var(--sb-gold) !important;
+        color: #121214 !important;
+        font-weight: 600;
+        box-shadow: none !important;
+    }
+
+/* Notes Textarea & Form Controls (Red Focus State) */
+.form-control {
+    background-color: #16151c !important;
+    border: 1px solid rgba(139, 0, 0, 0.4) !important;
+    color: var(--sb-text-main) !important;
+}
+
+    .form-control:focus {
+        background-color: #1c1a24 !important;
+        color: var(--sb-text-main) !important;
+        border-color: var(--sb-crimson) !important;
+        box-shadow: 0 0 0 0.25rem rgba(139, 0, 0, 0.35);
+    }
+
+    .form-control::placeholder {
+        color: #90909e;
+    }
+
+/* Links */
+a {
+    color: var(--sb-gold);
+}
+
+    a:hover {
+        color: #f7d994;
+    }

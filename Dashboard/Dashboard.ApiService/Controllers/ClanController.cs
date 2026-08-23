@@ -95,6 +95,20 @@ public class ClanController : ControllerBase
 
         return Ok();
     }
+    [HttpPost("/api/player/{id}/events")]
+    public async Task<IActionResult> UpdatePlayerEvents(int id, [FromBody] UpdateEventsDto dto)
+    {
+        // Find player and update events in your database, e.g.:
+        var player = await _db.Players.FindAsync(id);
+        if (player == null) return NotFound();
+
+        player.Events = dto.Events;
+        await _db.SaveChangesAsync();
+
+        return Ok();
+    }
+
+   
 
     private async Task UpsertGroupDataAsync(WomGroup freshGroup)
     {

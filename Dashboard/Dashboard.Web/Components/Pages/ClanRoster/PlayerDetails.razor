@@ -88,11 +88,52 @@
                         </div>
                     </div>
 
-                    <!-- Events -->
                     <div class="col-md-12">
                         <div class="p-4 border bg-light rounded-3 shadow-sm">
-                            <span class="text-muted d-block fs-5 mb-1">Events</span>
-                            <strong class="fs-4">@player.Events</strong>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted fs-5">Events</span>
+                                <div>
+                                    @if (!isEditingEvents)
+                                    {
+                                        <button class="btn btn-primary btn-outline-primary btn-sm px-3" @onclick="ToggleEditEvents" title="Edit Events">
+                                            ✏️ Edit
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-primary btn-sm px-3 me-2" @onclick="SaveEventsAsync" disabled="@isSavingEvents">
+                                            @if (isSavingEvents)
+                                            {
+                                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                                                <span>Saving...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Save</span>
+                                            }
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm px-3" @onclick="CancelEditEvents" disabled="@isSavingEvents">
+                                            Cancel
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(eventsStatusMessage))
+                            {
+                                <div class="alert alert-success py-1 px-2 mb-2" role="alert">
+                                    <small>@eventsStatusMessage</small>
+                                </div>
+                            }
+
+                            @if (!isEditingEvents)
+                            {
+                                <strong class="fs-4 d-block">@player.Events</strong>
+                            }
+                            else
+                            {
+                                <input type="number" class="form-control fs-5" @bind="tempEvents" />
+                            }
                         </div>
                     </div>
 

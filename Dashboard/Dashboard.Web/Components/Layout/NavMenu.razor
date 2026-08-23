@@ -1,29 +1,20 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Dashboard</a>
+﻿<nav class="custom-navbar">
+    <div class="custom-nav-container">
+
+        <NavLink class="custom-brand" href="" Match="NavLinkMatch.All">
+            <span class="bi bi-house-door-fill text-gold brand-icon" aria-hidden="true"></span>
+            <span class="text-gold tracking-wide brand-text">ScytheBound</span>
+        </NavLink>
+
+        <div class="custom-links-wrapper">
+            <NavLink class="custom-nav-link" href="clan-roster" Match="NavLinkMatch.Prefix">
+                <span class="bi bi-people-fill icon-space" aria-hidden="true"></span>
+                <span>Clan Roster</span>
+            </NavLink>
+            <NavLink class="custom-nav-link" href="about" Match="NavLinkMatch.Prefix">
+                <span class="bi bi-info-circle-fill icon-space" aria-hidden="true"></span>
+                <span>About</span>
+            </NavLink>
+        </div>
     </div>
-</div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="clan-roster">
-                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> Clan Roster
-            </NavLink>
-        </div>
-    </nav>
-</div>
+</nav>

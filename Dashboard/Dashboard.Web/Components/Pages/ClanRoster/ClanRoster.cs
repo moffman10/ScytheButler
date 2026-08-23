@@ -29,6 +29,7 @@
 
         protected string FormatRole(string role) => RankHelper.FormatRole(role);
         protected string CalculateTimeInClan(DateTime joinedAt) => CalculateTimeInClanHelper.CalculateTimeInClan(joinedAt);
+        protected string GetRankBadgeClass(string role) => GetBadgeClassHelper.GetRankBadgeClass(role);
 
         private IEnumerable<WomMembershipDto> GetFilteredMembers()
         {
