@@ -4,148 +4,162 @@
 
 <PageTitle>Clan Roster</PageTitle>
 
-<div class="container mt-4">
-    <!-- Header with Action Buttons -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Clan Roster</h1>
+<div class="fixed-hero-container">
+    <!-- True Full-Screen Background Image (Matching Home Page) -->
+    <img src="/Resources/Images/Backgrounds/HomePageBackground.png" alt="Scythebound Background" class="hero-background" />
 
-        <div class="d-flex align-items-center gap-2">
-            @if (lastSyncTime.HasValue)
-            {
-                <small class="text-muted me-2">
-                    Synced: @lastSyncTime.Value.ToLocalTime().ToString("g")
-                </small>
-            }
-
-            <button class="btn btn-outline-secondary btn-sm" @onclick="RefreshFromDatabaseAsync" disabled="@isUpdating">
-                Refresh
-            </button>
-
-            <button class="btn btn-primary btn-sm" @onclick="ForceUpdateFromWomAsync" disabled="@isUpdating">
-                @if (isUpdating)
+    <!-- Content Scrollable Wrapper Inside the Fixed Container -->
+    <div class="roster-scroll-content">
+        <!-- Header with Action Buttons -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="clan-title">Clan Roster</h1>
+                @if (clanData != null)
                 {
-                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-                    <span>Updating...</span>
+                    <h3 class="clan-subtitle">@clanData.Name</h3>
                 }
-                else
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                @if (lastSyncTime.HasValue)
                 {
-                    <span>Update from WOM</span>
+                    <small class="text-muted me-2">
+                        Synced: @lastSyncTime.Value.ToLocalTime().ToString("g")
+                    </small>
                 }
-            </button>
-        </div>
-    </div>
 
-    @if (errorMessage != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show">
-            @errorMessage
-            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
-        </div>
-    }
+                <button class="btn btn-outline-secondary btn-sm" @onclick="RefreshFromDatabaseAsync" disabled="@isUpdating">
+                    Refresh
+                </button>
 
-    @if (clanData == null && isUpdating)
-    {
-        <div class="d-flex align-items-center gap-2 my-4">
-            <div class="spinner-border text-primary" role="status"></div>
-            <span>Fetching clan roster...</span>
-        </div>
-    }
-    else if (clanData != null)
-    {
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3>@clanData.Name</h3>
-            <span class="badge bg-primary fs-6">
-                @clanData.Memberships.Count Members
-            </span>
-        </div>
-
-        <div class="mb-3">
-            <input type="text"
-                   class="form-control"
-                   placeholder="Search member display name..."
-                   value="@searchTerm"
-                   @oninput="OnSearchInput" />
-        </div>
-
-        <table class="table table-striped table-hover shadow-sm align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th @onclick="() => SortBy(SortColumn.Name)" class="sortable-header">
-                        Member Name @SortIndicator(SortColumn.Name)
-                    </th>
-                    <th @onclick="() => SortBy(SortColumn.Rank)" class="sortable-header">
-                        Rank / Role @SortIndicator(SortColumn.Rank)
-                    </th>
-                    <th @onclick="() => SortBy(SortColumn.Events)" class="sortable-header">
-                        Events @SortIndicator(SortColumn.Events)
-                    </th>
-                    <th @onclick="() => SortBy(SortColumn.JoinedDate)" class="sortable-header">
-                        Joined Date @SortIndicator(SortColumn.JoinedDate)
-                    </th>
-                    <th @onclick="() => SortBy(SortColumn.TimeInClan)" class="sortable-header">
-                        Time in Clan @SortIndicator(SortColumn.TimeInClan)
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (TotalFilteredCount == 0)
-                {
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-4">
-                            No matching names found for "@searchTerm".
-                        </td>
-                    </tr>
-                }
-                else
-                {
-                    @foreach (var member in GetPagedMembers())
+                <button class="btn btn-primary btn-sm" @onclick="ForceUpdateFromWomAsync" disabled="@isUpdating">
+                    @if (isUpdating)
                     {
-                        <tr>
-                            <td>
-                                <strong>
-                                    <a href="/player-details/@member.Player.Id" class="text-decoration-none">
-                                        @member.Player.DisplayName
-                                    </a>
-                                </strong>
-                            </td>
-                            <td><span class="badge @GetRankBadgeClass(member.Role)">@FormatRole(member.Role)</span></td>
-                            <td>@member.Player.Events</td>
-                            <td>@(member.Player.CreatedAt != DateTime.MinValue ? member.Player.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy") : "N/A")</td>
-                            <td>@CalculateTimeInClan(member.Player.CreatedAt)</td>
-                        </tr>
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                        <span>Updating...</span>
                     }
+                    else
+                    {
+                        <span>Update from WOM</span>
+                    }
+                </button>
+
+                @if (clanData != null)
+                {
+                    <span class="badge bg-primary fs-6 ms-2">
+                        @clanData.Memberships.Count Members
+                    </span>
                 }
-            </tbody>
-        </table>
+            </div>
+        </div>
 
-        <!-- Pagination Controls -->
-        @if (TotalPages > 1)
+        @if (errorMessage != null)
         {
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <span class="text-muted">
-                    Showing @GetStartIndex() to @GetEndIndex() of @clanData.Memberships.Count members
-                </span>
-
-                <nav aria-label="Clan Roster Pagination">
-                    <ul class="pagination mb-0">
-                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                            <button class="page-link" @onclick="() => GoToPage(currentPage - 1)">Previous</button>
-                        </li>
-
-                        @for (int i = 1; i <= TotalPages; i++)
-                        {
-                            var pageNum = i;
-                            <li class="page-item @(currentPage == pageNum ? "active" : "")">
-                                <button class="page-link" @onclick="() => GoToPage(pageNum)">@pageNum</button>
-                            </li>
-                        }
-
-                        <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
-                            <button class="page-link" @onclick="() => GoToPage(currentPage + 1)">Next</button>
-                        </li>
-                    </ul>
-                </nav>
+            <div class="alert alert-danger alert-dismissible fade show">
+                @errorMessage
+                <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
             </div>
         }
-    }
+
+        @if (clanData == null && isUpdating)
+        {
+            <div class="d-flex align-items-center gap-2 my-4">
+                <div class="spinner-border text-primary" role="status"></div>
+                <span>Fetching clan roster...</span>
+            </div>
+        }
+        else if (clanData != null)
+        {
+            <div class="mb-3">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Search member display name..."
+                       value="@searchTerm"
+                       @oninput="OnSearchInput" />
+            </div>
+
+            <div class="table-responsive shadow-sm">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th @onclick="() => SortBy(SortColumn.Name)" class="sortable-header">
+                                Member Name <span class="sort-indicator">@SortIndicator(SortColumn.Name)</span>
+                            </th>
+                            <th @onclick="() => SortBy(SortColumn.Rank)" class="sortable-header">
+                                Rank / Role <span class="sort-indicator">@SortIndicator(SortColumn.Rank)</span>
+                            </th>
+                            <th @onclick="() => SortBy(SortColumn.Events)" class="sortable-header">
+                                Events <span class="sort-indicator">@SortIndicator(SortColumn.Events)</span>
+                            </th>
+                            <th @onclick="() => SortBy(SortColumn.JoinedDate)" class="sortable-header">
+                                Joined Date <span class="sort-indicator">@SortIndicator(SortColumn.JoinedDate)</span>
+                            </th>
+                            <th @onclick="() => SortBy(SortColumn.TimeInClan)" class="sortable-header">
+                                Time in Clan <span class="sort-indicator">@SortIndicator(SortColumn.TimeInClan)</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (TotalFilteredCount == 0)
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    No matching names found for "@searchTerm".
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var member in GetPagedMembers())
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>
+                                            <a href="/player-details/@member.Player.Id" class="text-decoration-none">
+                                                @member.Player.DisplayName
+                                            </a>
+                                        </strong>
+                                    </td>
+                                    <td><span class="badge @GetRankBadgeClass(member.Role)">@FormatRole(member.Role)</span></td>
+                                    <td>@member.Player.Events</td>
+                                    <td>@(member.Player.CreatedAt != DateTime.MinValue ? member.Player.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy") : "N/A")</td>
+                                    <td>@CalculateTimeInClan(member.Player.CreatedAt)</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            @if (TotalPages > 1)
+            {
+                <div class="d-flex justify-content-between align-items-center mt-3 pb-4">
+                    <span class="text-muted">
+                        Showing @GetStartIndex() to @GetEndIndex() of @clanData.Memberships.Count members
+                    </span>
+
+                    <nav aria-label="Clan Roster Pagination">
+                        <ul class="pagination mb-0">
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(currentPage - 1)">Previous</button>
+                            </li>
+
+                            @for (int i = 1; i <= TotalPages; i++)
+                            {
+                                var pageNum = i;
+                                <li class="page-item @(currentPage == pageNum ? "active" : "")">
+                                    <button class="page-link" @onclick="() => GoToPage(pageNum)">@pageNum</button>
+                                </li>
+                            }
+
+                            <li class="page-item @(currentPage == TotalPages ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(currentPage + 1)">Next</button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        }
+    </div>
 </div>

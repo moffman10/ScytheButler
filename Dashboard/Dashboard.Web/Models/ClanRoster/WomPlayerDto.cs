@@ -1,10 +1,17 @@
-﻿public class WomPlayerDto
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+public class WomPlayerDto
 {
     public int Id { get; set; }
     public string DisplayName { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
     public string? Type { get; set; }
     public string? Build { get; set; }
+    public long? DiscordId { get; set; }
+    [NotMapped]
+    public string? DiscordUsername { get; set; }
+    public string? CustomType { get; set; }
+    public string? LinkType { get; set; }
     public string? Country { get; set; }
     public string? Status { get; set; }
     public bool Patron { get; set; }

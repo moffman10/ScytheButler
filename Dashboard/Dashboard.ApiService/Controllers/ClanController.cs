@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using ScytheButler.data.DatabaseModels.WomModels;
 using ScytheButler.Data;
 using Dashboard.ApiService.Helpers;
+using System.Text.Json;
+using System.Net.Http.Headers;
+using ScytheButler.Models; // Ensure your PlayerAchievement model's namespace is included
 
 namespace Dashboard.ApiService.Controllers;
 
@@ -13,30 +16,31 @@ namespace Dashboard.ApiService.Controllers;
 [Route("api/[controller]")]
 public class ClanController : ControllerBase
 {
-    private readonly ScytheButler.Data.AppDbContext _db;
+    private readonly AppDbContext _db;
     private readonly WomService _womService;
+    private readonly DiscordRoleSyncService _discordRoleSyncService;
+    private readonly IConfiguration _configuration;
 
-    public ClanController(AppDbContext db, WomService womService)
+    public ClanController(AppDbContext db, WomService womService, DiscordRoleSyncService discordRoleSyncService, IConfiguration configuration)
     {
         _db = db;
         _womService = womService;
+        _discordRoleSyncService = discordRoleSyncService;
+        _configuration = configuration;
     }
 
     [HttpGet("{groupId}")]
     public async Task<ActionResult<RosterResponseDto>> GetClanRoster(int groupId, [FromQuery] bool forceSync = false)
     {
-        // 1. Fetch group with memberships and players from internal database
         var existingGroup = await _db.Groups
             .Include(g => g.Memberships)
                 .ThenInclude(m => m.Player)
             .FirstOrDefaultAsync(g => g.Id == groupId);
 
-        // 2. Determine if cache is stale (>15 minutes) or missing
         bool isStale = existingGroup == null ||
                        existingGroup.LastSyncedAt == null ||
                        (DateTime.UtcNow - existingGroup.LastSyncedAt.Value).TotalMinutes >= 15;
 
-        // 3. Upsert if forced or stale
         if (forceSync || isStale)
         {
             var freshData = await _womService.GetGroupDetailsAsync(groupId);
@@ -44,7 +48,8 @@ public class ClanController : ControllerBase
             {
                 await UpsertGroupDataAsync(freshData);
 
-                // Reload from DB to verify saved state
+                await _discordRoleSyncService.SyncGroupRolesAsync(groupId);
+
                 existingGroup = await _db.Groups
                     .Include(g => g.Memberships)
                         .ThenInclude(m => m.Player)
@@ -73,14 +78,71 @@ public class ClanController : ControllerBase
         {
             return NotFound($"Player with ID {id} could not be found.");
         }
+
         var membership = await _db.Memberships.FirstOrDefaultAsync(m => m.PlayerId == id);
+
+        // Fetch / Refresh Discord username live via Discord REST API when profile is loaded
+        if (player.DiscordId.HasValue)
+        {
+            try
+            {
+                string? botToken = _configuration["DiscordToken"] ?? _configuration["Discord:Token"];
+
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "ScytheButler (Clan Dashboard, v1.0)");
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bot", botToken);
+
+                var response = await httpClient.GetAsync($"https://discord.com/api/v10/users/{player.DiscordId.Value}");
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+                    string liveUsername = json.GetProperty("username").GetString() ?? player.DiscordUsername;
+
+                    // If their username changed on Discord, update it in the database for all their linked accounts!
+                    if (liveUsername != player.DiscordUsername)
+                    {
+                        var siblingAccounts = await _db.Players
+                            .Where(p => p.DiscordId == player.DiscordId.Value)
+                            .ToListAsync();
+
+                        foreach (var acc in siblingAccounts)
+                        {
+                            acc.DiscordUsername = liveUsername;
+                        }
+                        await _db.SaveChangesAsync();
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback gracefully to whatever is stored in SSMS if the REST call fails/rate-limits
+            }
+        }
+
+        // Find sibling accounts sharing the same DiscordId
+        var linkedAccounts = new List<WomPlayer>();
+        if (player.DiscordId.HasValue)
+        {
+            linkedAccounts = await _db.Players
+                .Where(p => p.DiscordId == player.DiscordId.Value && p.Id != id)
+                .ToListAsync();
+        }
+
+        // Fetch saved achievements for this player from the database
+        var achievements = await _db.PlayerAchievements
+            .Where(pa => pa.PlayerId == id)
+            .ToDictionaryAsync(pa => pa.AchievementKey, pa => pa.IsUnlocked);
 
         return Ok(new
         {
             Player = player,
-            Role = membership?.Role ?? "recruit"
+            DiscordUsername = player.DiscordUsername, // Always returns the up-to-date username
+            Role = membership?.Role ?? "recruit",
+            LinkedAccounts = linkedAccounts,
+            Achievements = achievements // Send achievement dictionary down to frontend
         });
     }
+
     [HttpPost("/api/player/{id}/notes")]
     public async Task<IActionResult> UpdatePlayerNotes(int id, [FromBody] UpdateNotesDto dto)
     {
@@ -95,10 +157,10 @@ public class ClanController : ControllerBase
 
         return Ok();
     }
+
     [HttpPost("/api/player/{id}/events")]
     public async Task<IActionResult> UpdatePlayerEvents(int id, [FromBody] UpdateEventsDto dto)
     {
-        // Find player and update events in your database, e.g.:
         var player = await _db.Players.FindAsync(id);
         if (player == null) return NotFound();
 
@@ -108,13 +170,79 @@ public class ClanController : ControllerBase
         return Ok();
     }
 
-   
+    /// <summary>
+    /// Toggles an achievement/title for a player, updates the unlocked date, and updates their Discord role.
+    /// </summary>
+    [HttpPost("/api/player/{id}/toggle-achievement")]
+    public async Task<IActionResult> TogglePlayerAchievement(int id, [FromBody] ToggleAchievementDto dto)
+    {
+        var player = await _db.Players.FindAsync(id);
+        if (player == null)
+        {
+            return NotFound($"Player with ID {id} could not be found.");
+        }
+
+        // 1. Find or create the achievement record for this player
+        var record = await _db.PlayerAchievements
+            .FirstOrDefaultAsync(pa => pa.PlayerId == id && pa.AchievementKey == dto.AchievementKey);
+
+        if (record == null)
+        {
+            record = new PlayerAchievement
+            {
+                PlayerId = id,
+                AchievementKey = dto.AchievementKey
+            };
+            _db.PlayerAchievements.Add(record);
+        }
+
+        record.IsUnlocked = dto.IsUnlocked;
+        record.UnlockedAt = dto.IsUnlocked ? DateTime.UtcNow : null;
+        await _db.SaveChangesAsync();
+
+        // 2. Sync with Discord if the player has a linked Discord account and a role mapping exists
+        if (player.DiscordId.HasValue && player.LinkType == "primary")
+        {
+            string? roleId = _configuration[$"Discord:AchievementRoleMappings:{dto.AchievementKey}"];
+            if (!string.IsNullOrEmpty(roleId))
+            {
+                string? botToken = _configuration["DiscordToken"] ?? _configuration["Discord:Token"];
+                string? guildId = _configuration["Discord:GuildId"];
+
+                if (!string.IsNullOrEmpty(botToken) && !string.IsNullOrEmpty(guildId))
+                {
+                    try
+                    {
+                        using var httpClient = new HttpClient();
+                        httpClient.DefaultRequestHeaders.Add("User-Agent", "ScytheButler (Clan Dashboard, v1.0)");
+                        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bot", botToken);
+
+                        string memberUrl = $"https://discord.com/api/v10/guilds/{guildId}/members/{player.DiscordId.Value}";
+
+                        if (dto.IsUnlocked)
+                        {
+                            await httpClient.PutAsync($"{memberUrl}/roles/{roleId}", null);
+                        }
+                        else
+                        {
+                            await httpClient.DeleteAsync($"{memberUrl}/roles/{roleId}");
+                        }
+                    }
+                    catch
+                    {
+                        // Handle or log discord api errors gracefully if needed
+                    }
+                }
+            }
+        }
+
+        return Ok(new { success = true, unlockedAt = record.UnlockedAt });
+    }
 
     private async Task UpsertGroupDataAsync(WomGroup freshGroup)
     {
         var syncTime = DateTime.UtcNow;
 
-        // 1. Upsert Group Entity
         var existingGroup = await _db.Groups.FindAsync(freshGroup.Id);
         if (existingGroup == null)
         {
@@ -143,7 +271,6 @@ public class ClanController : ControllerBase
             existingGroup.LastSyncedAt = syncTime;
         }
 
-        // 2. Upsert Players & Memberships
         if (freshGroup.Memberships != null)
         {
             foreach (var membership in freshGroup.Memberships)
@@ -153,7 +280,6 @@ public class ClanController : ControllerBase
 
                 int playerId = membership.Player.Id;
 
-                // Handle Player Entity
                 var existingPlayer = await _db.Players.FindAsync(playerId);
                 if (existingPlayer == null)
                 {
@@ -190,10 +316,8 @@ public class ClanController : ControllerBase
                     existingPlayer.Ehb = membership.Player.Ehb;
                     existingPlayer.UpdatedAt = membership.Player.UpdatedAt;
                     existingPlayer.CreatedAt = membership.CreatedAt;
-                      
                 }
 
-                // Handle Membership Entity
                 var existingMembership = await _db.Memberships
                     .FirstOrDefaultAsync(m => m.PlayerId == playerId && m.GroupId == freshGroup.Id);
 
@@ -205,7 +329,7 @@ public class ClanController : ControllerBase
                         GroupId = freshGroup.Id,
                         Role = membership.Role,
                         CreatedAt = membership.CreatedAt,
-                        UpdatedAt = membership.UpdatedAt 
+                        UpdatedAt = membership.UpdatedAt
                     });
                 }
                 else

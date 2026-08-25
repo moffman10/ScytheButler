@@ -1,119 +1,553 @@
-﻿/* --- ScytheBound Player Details Theme --- */
-:root {
+﻿/* =========================================================
+   SCYTHEBOUND PLAYER DETAILS THEME
+   Scoped Blazor Razor CSS
+   ========================================================= */
+
+
+/* =========================================================
+   PAGE ROOT + THEME VARIABLES
+   ========================================================= */
+
+.player-details-page {
     --sb-bg-dark: #121214;
-    --sb-card-bg: #1a1a24;
-    --sb-border: #421a1a;
     --sb-crimson: #8b0000;
+    --sb-crimson-bright: #b31313;
     --sb-crimson-hover: #a50000;
-    --sb-gold: #f3c66f;
+    --sb-gold: #c5a059;
     --sb-text-main: #ffffff;
-    --sb-text-muted: #c4c4d0;
-}
-
-/* Force dark background on the entire HTML / Body viewport */
-html, body {
+    --sb-text-muted: #94949b;
+    --sb-glass-card: rgba(15, 15, 20, 0.62);
+    --sb-glass-card-strong: rgba(12, 12, 16, 0.76);
+    --sb-glass-input: rgba(10, 10, 14, 0.48);
+    --sb-glass-tile: rgba(18, 18, 23, 0.52);
+    --sb-border-subtle: rgba(255, 255, 255, 0.14);
+    --sb-border-red: rgba(139, 0, 0, 0.55);
+    --sb-border-red-strong: rgba(139, 0, 0, 0.88);
+    position: relative;
+    min-height: 100vh !important;
     background-color: var(--sb-bg-dark) !important;
+    background-image: url('/Resources/Images/Backgrounds/HomePageBackground.png') !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
     color: var(--sb-text-main) !important;
 }
 
-/* Main Outer Card Container */
-.card {
-    background-color: var(--sb-card-bg) !important;
-    border: 1px solid rgba(139, 0, 0, 0.5) !important;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 20px rgba(139, 0, 0, 0.2), 0 1px 0 rgba(243, 198, 111, 0.2) inset !important;
-    color: var(--sb-text-main) !important;
-}
 
-/* Card Header with flipped left-to-right gradient (Red on left, dark on right) */
-.card-header {
-    background: linear-gradient(90deg, #8b0000 0%, rgba(139, 0, 0, 0.3) 45%, #121214 100%) !important;
-    border-bottom: 2px solid var(--sb-crimson) !important;
-    color: var(--sb-gold) !important;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-}
+    /* =========================================================
+   BACKGROUND OVERLAY
+   ========================================================= */
 
-/* Stat & Info Blocks */
-.bg-light {
-    background-color: #211e28 !important;
-    border: 1px solid rgba(139, 0, 0, 0.4) !important;
-    color: var(--sb-text-main) !important;
-    transition: all 0.25s ease-in-out;
-}
-
-    /* Hover state with flipped left-to-right gradient (Red on left, dark on right) */
-    .bg-light:hover {
-        background: linear-gradient(90deg, #8b0000 0%, rgba(139, 0, 0, 0.3) 45%, #121214 100%) !important;
-        border-color: rgba(139, 0, 0, 0.8) !important;
-        box-shadow: 0 6px 16px rgba(139, 0, 0, 0.4) !important;
+    .player-details-page::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 0;
+        background: linear-gradient( 180deg, rgba(8, 8, 11, 0.38) 0%, rgba(8, 8, 11, 0.58) 100% );
     }
 
-    .bg-light .text-muted {
-        color: var(--sb-text-muted) !important;
+
+    /* Keep page content above the overlay */
+
+    .player-details-page > * {
+        position: relative;
+        z-index: 1;
     }
 
-    .bg-light strong,
-    .bg-light .fs-4 {
-        color: #ffffff !important;
-        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
-    }
 
-.text-muted {
-    color: var(--sb-text-muted) !important;
-}
+    /* =========================================================
+   GENERAL TEXT
+   ========================================================= */
 
-/* Primary Buttons */
-.btn-primary {
-    background: linear-gradient(90deg, #700000 45%, #8b0000 100%) !important;
-    border-color: #520000 !important;
-    color: #fff !important;
-    box-shadow: 0 3px 10px rgba(139, 0, 0, 0.5);
-}
-
-    .btn-primary:hover, .btn-primary:focus {
-        background: linear-gradient(90deg, #8b0000 45%, #a50000 100%) !important;
-        border-color: var(--sb-crimson) !important;
-        box-shadow: 0 5px 15px rgba(139, 0, 0, 0.7);
-    }
-
-/* "Back to Clan Roster" Button with Gold Gradient and NO shadow */
-.btn-outline-secondary {
-    color: var(--sb-text-main) !important;
-    border-color: rgba(243, 198, 111, 0.4) !important;
-    background-color: rgba(255, 255, 255, 0.04) !important;
-    transition: all 0.2s ease-in-out;
-}
-
-    .btn-outline-secondary:hover {
-        background: linear-gradient(135deg, #f3c66f 0%, #c5a059 100%) !important;
-        border-color: var(--sb-gold) !important;
-        color: #121214 !important;
-        font-weight: 600;
-        box-shadow: none !important;
-    }
-
-/* Notes Textarea & Form Controls (Red Focus State) */
-.form-control {
-    background-color: #16151c !important;
-    border: 1px solid rgba(139, 0, 0, 0.4) !important;
-    color: var(--sb-text-main) !important;
-}
-
-    .form-control:focus {
-        background-color: #1c1a24 !important;
+    .player-details-page,
+    .player-details-page .player-details-content {
         color: var(--sb-text-main) !important;
-        border-color: var(--sb-crimson) !important;
-        box-shadow: 0 0 0 0.25rem rgba(139, 0, 0, 0.35);
     }
 
-    .form-control::placeholder {
-        color: #90909e;
+
+        .player-details-page .text-light,
+        .player-details-page .text-white {
+            color: #ffffff !important;
+        }
+
+
+        .player-details-page .text-muted {
+            color: var(--sb-text-muted) !important;
+        }
+
+
+        .player-details-page .text-danger {
+            color: #d85b5b !important;
+        }
+
+
+        /* =========================================================
+   MAIN GLASS CARDS
+   ========================================================= */
+
+        .player-details-page .sb-card {
+            background-color: var(--sb-glass-card) !important;
+            border: 1px solid var(--sb-border-red) !important;
+            color: var(--sb-text-main) !important;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.50), 0 0 20px rgba(139, 0, 0, 0.08) !important;
+            backdrop-filter: blur(5px) !important;
+            -webkit-backdrop-filter: blur(5px) !important;
+        }
+
+
+        .player-details-page .sb-card-strong {
+            background-color: var(--sb-glass-card-strong) !important;
+            border: 1px solid var(--sb-border-red) !important;
+            color: var(--sb-text-main) !important;
+            backdrop-filter: blur(6px) !important;
+            -webkit-backdrop-filter: blur(6px) !important;
+        }
+
+
+        /* Defeat Bootstrap backgrounds */
+
+        .player-details-page .sb-card.bg-dark,
+        .player-details-page .sb-card.bg-black {
+            background-color: var(--sb-glass-card) !important;
+        }
+
+
+        /* =========================================================
+   CARD HEADINGS
+   ========================================================= */
+
+        .player-details-page .sb-card-title,
+        .player-details-page h5.text-danger,
+        .player-details-page h6.text-danger {
+            color: #d85b5b !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.6px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.85);
+        }
+
+
+        /* Achievement category headings */
+
+        .player-details-page .sb-section-title {
+            color: #d85b5b !important;
+            font-size: 0.75rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.8px;
+            margin-bottom: 0.65rem !important;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.80);
+        }
+
+
+        /* =========================================================
+   DIVIDERS
+   ========================================================= */
+
+        .player-details-page .sb-divider,
+        .player-details-page .border-bottom {
+            border-color: rgba(255, 255, 255, 0.14) !important;
+            border-bottom-color: rgba(255, 255, 255, 0.14) !important;
+        }
+
+
+        /* =========================================================
+   PROFILE / STAT TEXT
+   ========================================================= */
+
+        .player-details-page .sb-card strong,
+        .player-details-page .sb-card .fw-semibold,
+        .player-details-page .sb-card .fw-bold {
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.70);
+        }
+
+
+        /* =========================================================
+   SMALL STAT CARDS
+   ========================================================= */
+
+        .player-details-page .sb-stat-card {
+            background-color: rgba(15, 15, 20, 0.58) !important;
+            border: 1px solid rgba(139, 0, 0, 0.48) !important;
+            color: #ffffff !important;
+            backdrop-filter: blur(4px) !important;
+            -webkit-backdrop-filter: blur(4px) !important;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+        }
+
+
+            .player-details-page .sb-stat-card:hover {
+                background-color: rgba(45, 16, 20, 0.62) !important;
+                border-color: rgba(139, 0, 0, 0.82) !important;
+                box-shadow: 0 8px 22px rgba(139, 0, 0, 0.16) !important;
+            }
+
+
+        /* =========================================================
+   FORM CONTROLS
+   ========================================================= */
+
+        .player-details-page .sb-form-control,
+        .player-details-page .form-control {
+            background-color: var(--sb-glass-input) !important;
+            border: 1px solid var(--sb-border-subtle) !important;
+            color: #ffffff !important;
+            box-shadow: none !important;
+            backdrop-filter: blur(3px) !important;
+            -webkit-backdrop-filter: blur(3px) !important;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+        }
+
+
+            .player-details-page .sb-form-control.bg-black,
+            .player-details-page .form-control.bg-black {
+                background-color: var(--sb-glass-input) !important;
+            }
+
+
+            .player-details-page .sb-form-control:focus,
+            .player-details-page .form-control:focus {
+                background-color: rgba(18, 18, 24, 0.66) !important;
+                color: #ffffff !important;
+                border-color: var(--sb-crimson) !important;
+                box-shadow: 0 0 0 0.20rem rgba(139, 0, 0, 0.22) !important;
+                outline: none !important;
+            }
+
+
+            .player-details-page .sb-form-control::placeholder,
+            .player-details-page .form-control::placeholder {
+                color: #898991 !important;
+                opacity: 1 !important;
+            }
+
+
+        /* =========================================================
+   BUTTONS
+   ========================================================= */
+
+
+        /* Primary / Save */
+
+        .player-details-page .sb-btn-primary,
+        .player-details-page .btn-danger {
+            background: linear-gradient( 90deg, #720000 0%, #8b0000 100% ) !important;
+            border-color: #610000 !important;
+            color: #ffffff !important;
+            box-shadow: 0 3px 10px rgba(139, 0, 0, 0.30) !important;
+            transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+        }
+
+
+            .player-details-page .sb-btn-primary:hover,
+            .player-details-page .sb-btn-primary:focus,
+            .player-details-page .btn-danger:hover,
+            .player-details-page .btn-danger:focus {
+                background: linear-gradient( 90deg, #8b0000 0%, #a50000 100% ) !important;
+                border-color: var(--sb-crimson) !important;
+                color: #ffffff !important;
+                box-shadow: 0 5px 15px rgba(139, 0, 0, 0.52) !important;
+            }
+
+
+        /* Secondary / Cancel / Back */
+
+        .player-details-page .sb-btn-secondary,
+        .player-details-page .btn-outline-secondary {
+            color: #ffffff !important;
+            border-color: rgba(255, 255, 255, 0.20) !important;
+            background-color: rgba(15, 15, 20, 0.46) !important;
+            backdrop-filter: blur(3px) !important;
+            -webkit-backdrop-filter: blur(3px) !important;
+            box-shadow: none !important;
+        }
+
+
+            .player-details-page .sb-btn-secondary:hover,
+            .player-details-page .sb-btn-secondary:focus,
+            .player-details-page .btn-outline-secondary:hover,
+            .player-details-page .btn-outline-secondary:focus {
+                background-color: rgba(40, 40, 50, 0.72) !important;
+                border-color: rgba(255, 255, 255, 0.38) !important;
+                color: #ffffff !important;
+            }
+
+
+        /* Outline danger */
+
+        .player-details-page .sb-btn-outline-danger,
+        .player-details-page .btn-outline-danger {
+            color: #d85b5b !important;
+            border-color: rgba(139, 0, 0, 0.65) !important;
+            background-color: rgba(20, 20, 25, 0.38) !important;
+            backdrop-filter: blur(3px) !important;
+            -webkit-backdrop-filter: blur(3px) !important;
+        }
+
+
+            .player-details-page .sb-btn-outline-danger:hover,
+            .player-details-page .sb-btn-outline-danger:focus,
+            .player-details-page .btn-outline-danger:hover,
+            .player-details-page .btn-outline-danger:focus {
+                color: #ffffff !important;
+                background-color: rgba(139, 0, 0, 0.76) !important;
+                border-color: var(--sb-crimson) !important;
+            }
+
+
+        /* =========================================================
+   ACHIEVEMENT TILES
+   ========================================================= */
+
+        .player-details-page .sb-achievement-tile {
+            position: relative;
+            display: flex !important;
+            align-items: center !important;
+            min-height: 48px !important;
+            margin: 0 !important;
+            padding: 0.70rem 0.75rem !important;
+            background-color: var(--sb-glass-tile) !important;
+            border: 1px solid var(--sb-border-subtle) !important;
+            border-radius: 5px !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025) !important;
+            backdrop-filter: blur(3px) !important;
+            -webkit-backdrop-filter: blur(3px) !important;
+            cursor: pointer;
+            transition: background-color 0.20s ease, border-color 0.20s ease, box-shadow 0.20s ease !important;
+        }
+
+
+        /* Support Bootstrap form-check markup */
+
+        .player-details-page .form-check.sb-achievement-tile {
+            padding: 0.70rem 0.75rem !important;
+        }
+
+
+        /* Hover */
+
+        .player-details-page .sb-achievement-tile:hover {
+            background-color: rgba(45, 19, 24, 0.58) !important;
+            border-color: rgba(139, 0, 0, 0.60) !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.34), 0 0 10px rgba(139, 0, 0, 0.08) !important;
+        }
+
+
+        /* Checked tile */
+
+        .player-details-page .sb-achievement-tile:has(.sb-achievement-checkbox:checked),
+        .player-details-page .sb-achievement-tile:has(.form-check-input:checked) {
+            background: linear-gradient( 90deg, rgba(139, 0, 0, 0.30) 0%, rgba(85, 12, 16, 0.18) 55%, rgba(18, 18, 23, 0.50) 100% ) !important;
+            border-color: rgba(139, 0, 0, 0.78) !important;
+            box-shadow: inset 0 0 15px rgba(139, 0, 0, 0.08), 0 0 12px rgba(139, 0, 0, 0.10) !important;
+        }
+
+
+        /* =========================================================
+   ACHIEVEMENT CHECKBOXES
+   ========================================================= */
+
+        .player-details-page .sb-achievement-checkbox,
+        .player-details-page .form-check-input {
+            flex: 0 0 auto !important;
+            width: 1rem !important;
+            height: 1rem !important;
+            margin: 0 0.60rem 0 0 !important;
+            background-color: rgba(14, 14, 18, 0.92) !important;
+            border: 1px solid rgba(255, 255, 255, 0.28) !important;
+            border-radius: 3px !important;
+            box-shadow: none !important;
+            cursor: pointer;
+        }
+
+
+            .player-details-page .sb-achievement-checkbox:hover,
+            .player-details-page .form-check-input:hover {
+                border-color: rgba(139, 0, 0, 0.82) !important;
+            }
+
+
+            .player-details-page .sb-achievement-checkbox:checked,
+            .player-details-page .form-check-input:checked {
+                background-color: var(--sb-crimson) !important;
+                border-color: var(--sb-crimson-bright) !important;
+                box-shadow: 0 0 8px rgba(139, 0, 0, 0.45) !important;
+            }
+
+
+            .player-details-page .sb-achievement-checkbox:focus,
+            .player-details-page .form-check-input:focus {
+                border-color: var(--sb-crimson) !important;
+                box-shadow: 0 0 0 0.18rem rgba(139, 0, 0, 0.22) !important;
+            }
+
+
+        /* =========================================================
+   ACHIEVEMENT LABELS
+   ========================================================= */
+
+        .player-details-page .sb-achievement-label,
+        .player-details-page .form-check-label {
+            flex: 1;
+            margin: 0 !important;
+            color: #ffffff !important;
+            font-size: 0.78rem !important;
+            font-weight: 600 !important;
+            cursor: pointer;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.70);
+        }
+
+
+        /* =========================================================
+   DROPDOWNS
+   ========================================================= */
+
+        .player-details-page .sb-linked-dropdown,
+        .player-details-page .dropdown-menu {
+            background-color: rgba(15, 15, 20, 0.90) !important;
+            border: 1px solid rgba(139, 0, 0, 0.65) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.70) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+        }
+
+
+        .player-details-page .dropdown-item {
+            color: #ffffff !important;
+            background-color: transparent !important;
+        }
+
+
+            .player-details-page .dropdown-item:hover,
+            .player-details-page .dropdown-item:focus {
+                color: #ffffff !important;
+                background-color: rgba(139, 0, 0, 0.35) !important;
+            }
+
+
+        /* =========================================================
+   LINKS / ICONS
+   ========================================================= */
+
+        .player-details-page .btn-link {
+            color: #d85b5b !important;
+        }
+
+
+        .player-details-page a {
+            color: var(--sb-gold) !important;
+        }
+
+
+            .player-details-page a:hover {
+                color: #dfbd71 !important;
+            }
+
+
+        /* =========================================================
+   BADGES
+   ========================================================= */
+
+        .player-details-page .badge.bg-danger {
+            background-color: rgba(139, 0, 0, 0.85) !important;
+            border: 1px solid rgba(139, 0, 0, 0.95) !important;
+        }
+
+
+        .player-details-page .badge.bg-secondary {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            color: #ffffff !important;
+        }
+
+
+        /* =========================================================
+   ALERTS
+   ========================================================= */
+
+        .player-details-page .alert-success {
+            background-color: rgba(25, 135, 84, 0.20) !important;
+            border-color: rgba(25, 135, 84, 0.50) !important;
+            color: #b7f0cf !important;
+            backdrop-filter: blur(4px) !important;
+        }
+
+
+        .player-details-page .alert-danger {
+            background-color: rgba(139, 0, 0, 0.22) !important;
+            border-color: rgba(139, 0, 0, 0.55) !important;
+            color: #ffb3b3 !important;
+            backdrop-filter: blur(4px) !important;
+        }
+
+
+        /* =========================================================
+   PROFILE AVATAR
+   ========================================================= */
+
+        .player-details-page .rounded-circle.border-danger {
+            background-color: rgba(8, 8, 10, 0.62) !important;
+            border-color: rgba(139, 0, 0, 0.75) !important;
+            box-shadow: 0 0 18px rgba(139, 0, 0, 0.18) !important;
+            backdrop-filter: blur(3px) !important;
+        }
+
+
+        /* =========================================================
+   LOADING SPINNER
+   ========================================================= */
+
+        .player-details-page .spinner-border.text-danger {
+            color: var(--sb-crimson-bright) !important;
+        }
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+
+    .player-details-page {
+        background-attachment: scroll !important;
     }
 
-/* Links */
-a {
-    color: var(--sb-gold);
+        .player-details-page .sb-achievement-tile {
+            min-height: 46px !important;
+        }
 }
 
-    a:hover {
-        color: #f7d994;
+/*=========================================================
+    List
+  =========================================================*/
+.player-details-page .sb-stat-row {
+    display: grid;
+    grid-template-columns: 110px 110px;
+    justify-content: center;
+    align-items: center;
+    column-gap: 1rem;
+}
+
+    .player-details-page .sb-stat-row > span:first-child {
+        text-align: right;
     }
+
+    .player-details-page .sb-stat-row > span:last-child {
+        text-align: left;
+    }
+/*=========================================================
+    WomDetails title
+  =========================================================*/
+
+.player-details-page .sb-section-title-with-icon {
+    position: relative;
+    text-align: center !important;
+}
+
+.player-details-page .sb-section-title-icon {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}

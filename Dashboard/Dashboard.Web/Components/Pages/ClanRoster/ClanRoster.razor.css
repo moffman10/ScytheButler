@@ -1,8 +1,6 @@
 ﻿/* --- ScytheBound Clan Roster Theme (Isolated CSS) --- */
 :root {
     --sb-bg-dark: #121214;
-    --sb-card-bg: #1a1a1e;
-    --sb-border: #2a2a32;
     --sb-crimson: #8b0000;
     --sb-crimson-hover: #a50000;
     --sb-gold: #c5a059;
@@ -10,50 +8,117 @@
     --sb-text-muted: #94949b;
 }
 
-::deep body {
+/* Disable outer window scrolling completely */
+::deep html, ::deep body {
     background-color: var(--sb-bg-dark) !important;
     color: var(--sb-text-main) !important;
+    margin: 0;
+    padding: 0;
+    overflow: hidden !important;
+    height: 100vh;
 }
 
-::deep h1, ::deep h3 {
-    color: var(--sb-text-main);
-    font-weight: 700;
+/* Fixed container locking right below your nav bar */
+.fixed-hero-container {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100vw;
+    height: calc(100vh - 60px);
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background-color: var(--sb-bg-dark);
+}
+
+/* Make the background fill the container entirely with zero gaps */
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Scrollable content box sitting on top of the background image */
+.roster-scroll-content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    overflow-y: auto;
+    padding: 2rem 7rem 4rem 7rem;
+}
+
+/* Header Typography (Using ::deep to ensure it overrides parent layout rules) */
+::deep .clan-title {
+    font-size: 5rem;
+    font-weight: 800;
     letter-spacing: 0.5px;
+    color: var(--sb-text-main) !important;
+    margin-bottom: 0px;
 }
 
-/* Tables & Custom Alternating Greys */
+::deep .clan-subtitle {
+    font-size: 2.5rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 1px !important;
+    color: #ff3333 !important; 
+    text-transform: uppercase;
+    margin-top: 2px;
+    margin-bottom: 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* --- SEMI-TRANSPARENT TABLE WITH UNIFORM SEARCH BAR OPACITY --- */
+::deep .table-responsive {
+    background-color: transparent !important;
+    border-radius: 6px;
+    padding: 4px;
+}
+
 ::deep .table {
-    color: var(--sb-text-main) !important;
-    background-color: var(--sb-card-bg);
-    border-color: var(--sb-border);
-    --bs-table-bg: transparent;
-    --bs-table-striped-bg: #25252c !important;
-    --bs-table-striped-color: var(--sb-text-main) !important;
+    color: #ffffff !important;
+    background-color: transparent !important;
+    border-color: rgba(255, 255, 255, 0.15);
+    --bs-table-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+    --bs-table-striped-bg: transparent !important;
+    --bs-table-striped-color: #ffffff !important;
 }
 
-    ::deep .table > tbody > tr > td {
-        color: var(--sb-text-main) !important;
+    /* Force table row container to be transparent */
+    ::deep .table > tbody > tr {
+        background-color: transparent !important;
     }
 
-    ::deep .table > tbody > tr:nth-of-type(odd) {
-        background-color: #25252c !important;
-        color: var(--sb-text-main) !important;
-    }
+        /* Set every table cell to match the search bar's exact opacity & color */
+        ::deep .table > tbody > tr > td {
+            background-color: rgba(20, 20, 25, 0.6) !important;
+            color: #ffffff !important;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9) !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+            padding-top: 0.8rem;
+            padding-bottom: 0.8rem;
+        }
 
-    ::deep .table > tbody > tr:nth-of-type(even) {
-        background-color: #1f1f26 !important;
-        color: var(--sb-text-main) !important;
-    }
-
-::deep .table-hover > tbody > tr:hover {
-    background-color: rgba(139, 0, 0, 0.25) !important;
-    color: var(--sb-text-main) !important;
+/* Subtle highlight color when hovering over a row */
+::deep .table-hover > tbody > tr:hover > td {
+    background-color: rgba(139, 0, 0, 0.45) !important;
+    color: #ffffff !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9) !important;
 }
 
-::deep .table-dark, ::deep .table > thead {
-    background-color: #2c2c36 !important;
-    color: var(--sb-gold) !important;
-    border-color: var(--sb-border);
+/* Table Headers */
+::deep .table > thead > tr > th {
+    color: var(--sb-crimson) !important;
+    background-color: rgba(15, 15, 20, 0.7) !important;
+    border-bottom: 2px solid var(--sb-crimson) !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px;
 }
 
 /* Sortable Headers */
@@ -64,7 +129,7 @@
 }
 
     ::deep .sortable-header:hover {
-        background-color: #353542 !important;
+        background-color: rgba(40, 40, 50, 0.7) !important;
         color: #dfbd71 !important;
     }
 
@@ -74,109 +139,103 @@
     color: var(--sb-gold);
 }
 
-/* --- Clean Custom Rank & Role Badges (Matching Fill & Border) --- */
+/* Badges & Ranks (Slightly Transparent / Glassmorphism Look) */
 ::deep .badge {
     border-style: solid;
     border-width: 1px;
 }
 
+    ::deep .badge.bg-primary {
+        background-color: rgba(139, 0, 0, 0.85) !important;
+        border-color: rgba(139, 0, 0, 0.9) !important;
+        color: #fff;
+    }
+
     ::deep .badge.badge-3-gem {
-        background-color: #751f33 !important;
-        border-color: #751f33 !important;
+        background-color: rgba(117, 31, 51, 0.85) !important;
+        border-color: rgba(117, 31, 51, 0.9) !important;
         color: #ffffff !important;
     }
 
     ::deep .badge.badge-2-gem {
-        background-color: #8c2b45 !important;
-        border-color: #8c2b45 !important;
+        background-color: rgba(140, 43, 69, 0.85) !important;
+        border-color: rgba(140, 43, 69, 0.9) !important;
         color: #ffffff !important;
     }
 
     ::deep .badge.badge-1-gem {
-        background-color: #a0305c !important;
-        border-color: #a0305c !important;
+        background-color: rgba(160, 48, 92, 0.85) !important;
+        border-color: rgba(160, 48, 92, 0.9) !important;
         color: #ffffff !important;
     }
 
     ::deep .badge.badge-3-star {
-        background-color: #9c3dbe !important;
-        border-color: #9c3dbe !important;
+        background-color: rgba(156, 61, 190, 0.85) !important;
+        border-color: rgba(156, 61, 190, 0.9) !important;
         color: #ffffff !important;
     }
 
     ::deep .badge.badge-2-star {
-        background-color: #8b4ecd !important;
-        border-color: #8b4ecd !important;
+        background-color: rgba(139, 78, 205, 0.85) !important;
+        border-color: rgba(139, 78, 205, 0.9) !important;
         color: #ffffff !important;
     }
 
     ::deep .badge.badge-1-star {
-        background-color: #7a5fdd !important;
-        border-color: #7a5fdd !important;
+        background-color: rgba(122, 95, 221, 0.85) !important;
+        border-color: rgba(122, 95, 221, 0.9) !important;
         color: #ffffff !important;
     }
 
     ::deep .badge.badge-3-banana {
-        background-color: #276ed2 !important;
-        border-color: #276ed2 !important;
+        background-color: rgba(39, 110, 210, 0.85) !important;
+        border-color: rgba(39, 110, 210, 0.9) !important;
         color: #ffffff !important;
     }
 
     ::deep .badge.badge-2-banana {
-        background-color: #2b8acd !important;
-        border-color: #2b8acd !important;
+        background-color: rgba(43, 138, 205, 0.85) !important;
+        border-color: rgba(43, 138, 205, 0.9) !important;
         color: #ffffff !important;
     }
 
     ::deep .badge.badge-1-banana {
-        background-color: #2fa3c7 !important;
-        border-color: #2fa3c7 !important;
+        background-color: rgba(47, 163, 199, 0.85) !important;
+        border-color: rgba(47, 163, 199, 0.9) !important;
         color: #ffffff !important;
     }
 
     ::deep .badge.badge-gold-key {
-        background-color: #f1c40f !important;
-        border-color: #f1c40f !important;
+        background-color: rgba(241, 196, 15, 0.85) !important;
+        border-color: rgba(241, 196, 15, 0.9) !important;
         color: #000000 !important;
         font-weight: bold;
     }
 
     ::deep .badge.badge-silver-key {
-        background-color: #c0c0c0 !important;
-        border-color: #c0c0c0 !important;
+        background-color: rgba(192, 192, 192, 0.85) !important;
+        border-color: rgba(192, 192, 192, 0.9) !important;
         color: #000000 !important;
         font-weight: bold;
     }
 
     ::deep .badge.badge-bronze-key {
-        background-color: #cd7f32 !important;
-        border-color: #cd7f32 !important;
+        background-color: rgba(205, 127, 50, 0.85) !important;
+        border-color: rgba(205, 127, 50, 0.9) !important;
         color: #000000 !important;
     }
 
     ::deep .badge.badge-event-manager {
-        background-color: #e91e63 !important;
-        border-color: #e91e63 !important;
+        background-color: rgba(233, 30, 99, 0.85) !important;
+        border-color: rgba(233, 30, 99, 0.9) !important;
         color: #ffffff !important;
     }
 
     ::deep .badge.badge-raid-coach {
-        background-color: #00fff8 !important;
-        border-color: #00fff8 !important;
+        background-color: rgba(0, 255, 248, 0.85) !important;
+        border-color: rgba(0, 255, 248, 0.9) !important;
         color: #121214 !important;
         font-weight: bold;
-    }
-
-    ::deep .badge.bg-primary {
-        background-color: var(--sb-crimson) !important;
-        border-color: var(--sb-crimson) !important;
-        color: #fff;
-    }
-
-    ::deep .badge.badge-secondary, ::deep .badge.bg-secondary {
-        background-color: #26262f !important;
-        border-color: var(--sb-border) !important;
-        color: var(--sb-gold) !important;
     }
 
 /* Buttons */
@@ -193,54 +252,47 @@
 
 ::deep .btn-outline-secondary {
     color: var(--sb-text-main) !important;
-    border-color: var(--sb-border) !important;
-    background-color: transparent !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(20, 20, 25, 0.5) !important;
 }
 
     ::deep .btn-outline-secondary:hover {
-        background-color: var(--sb-border) !important;
+        background-color: rgba(40, 40, 50, 0.8) !important;
         color: #fff !important;
     }
 
 /* Search Input */
 ::deep .form-control {
-    background-color: #17171c !important;
-    border: 1px solid var(--sb-border) !important;
+    background-color: rgba(20, 20, 25, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
     color: var(--sb-text-main) !important;
 }
 
     ::deep .form-control:focus {
-        background-color: #17171c !important;
+        background-color: rgba(20, 20, 25, 0.85) !important;
         color: var(--sb-text-main) !important;
         border-color: var(--sb-crimson) !important;
         box-shadow: 0 0 0 0.25rem rgba(139, 0, 0, 0.25);
     }
 
     ::deep .form-control::placeholder {
-        color: #6c6c75;
+        color: #8c8c95;
     }
 
-/* Links */
-::deep .table td strong a {
-    color: var(--sb-gold) !important;
+/* Links inside table cells forced to pure white */
+::deep .table td a {
+    color: #ffffff !important;
+    text-decoration: none;
 }
 
-    ::deep .table td strong a:hover {
-        color: #dfbd71 !important;
-    }
-
-::deep a {
-    color: var(--sb-gold);
-}
-
-    ::deep a:hover {
-        color: #dfbd71;
+    ::deep .table td a:hover {
+        color: var(--sb-gold) !important;
     }
 
 /* Pagination */
 ::deep .pagination .page-link {
-    background-color: var(--sb-card-bg);
-    border-color: var(--sb-border);
+    background-color: rgba(20, 20, 25, 0.6);
+    border-color: rgba(255, 255, 255, 0.15);
     color: var(--sb-text-main);
 }
 
@@ -251,7 +303,7 @@
 }
 
 ::deep .pagination .page-item.disabled .page-link {
-    background-color: #121214;
-    border-color: var(--sb-border);
+    background-color: rgba(15, 15, 20, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
     color: #555;
 }

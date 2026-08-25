@@ -4,169 +4,790 @@
 
 <PageTitle>Player Details - @(player?.DisplayName ?? "Loading...")</PageTitle>
 
-<div class="container-lg mt-5">
-    <button class="btn btn-outline-secondary mb-4 px-4 py-2 fw-semibold" @onclick="GoBack">
-        &larr; Back to Clan Roster
-    </button>
+<div class="player-details-page min-vh-100 py-4 px-3 px-lg-5 text-light">
+
+    <!-- Top Action Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <button class="btn sb-btn-secondary px-3 py-2 fw-semibold"
+                @onclick="GoBack">
+            &larr; Back to Clan Roster
+        </button>
+
+        <div class="d-flex gap-2">
+
+            <button class="btn sb-btn-secondary px-4 py-2"
+                    @onclick="GoBack">
+                Cancel
+            </button>
+
+            <button class="btn sb-btn-primary px-4 py-2 fw-semibold"
+                    @onclick="SaveAllChangesAsync">
+                Save Changes
+            </button>
+
+        </div>
+
+    </div>
 
     @if (errorMessage != null)
     {
         <div class="alert alert-danger alert-dismissible fade show fs-5">
             @errorMessage
-            <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+
+            <button type="button"
+                    class="btn-close"
+                    @onclick="() => errorMessage = null">
+            </button>
         </div>
     }
 
     @if (isLoading)
     {
         <div class="d-flex align-items-center gap-3 my-5 py-5 justify-content-center">
-            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-            <span class="fs-4 text-muted">Loading player details...</span>
+
+            <div class="spinner-border text-danger"
+                 style="width: 3rem; height: 3rem;"
+                 role="status">
+            </div>
+
+            <span class="fs-4 text-muted">
+                Loading player details...
+            </span>
+
         </div>
     }
     else if (player != null)
     {
-        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-            <div class="card-header bg-dark text-white py-4 px-4">
-                <h2 class="mb-0 display-6 fw-bold">@player.DisplayName</h2>
-            </div>
-            <div class="card-body p-5">
-                <div class="row g-4">
+        <div class="row g-4">
 
-                    <!-- Rank / Role -->
-                    <div class="col-md-12">
-                        <div class="p-4 border bg-light rounded-3 shadow-sm">
-                            <span class="text-muted d-block fs-5 mb-1">Rank</span>
-                            <strong class="fs-4">@(string.IsNullOrEmpty(playerRole) ? "N/A" : FormatRole(playerRole))</strong>
-                        </div>
-                    </div>
-                    <!-- Country -->
-                    <div class="col-md-4">
-                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
-                            <span class="text-muted d-block fs-5 mb-1">Country</span>
-                            <strong class="fs-4">@(string.IsNullOrWhiteSpace(player.Country) ? "N/A" : player.Country)</strong>
-                        </div>
-                    </div>
+            <!-- COLUMN 1 -->
+            <div class="col-xl-2 col-lg-4">
 
-                    <!-- Joined Date (Created At) -->
-                    <div class="col-md-4">
-                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
-                            <span class="text-muted d-block fs-5 mb-1">Joined Date</span>
-                            <strong class="fs-4">@(player.CreatedAt != DateTime.MinValue ? player.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy") : "N/A")</strong>
-                        </div>
-                    </div>
+                <div class="d-flex flex-column gap-3">
 
-                    <!-- Time in Clan -->
-                    <div class="col-md-4">
-                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
-                            <span class="text-muted d-block fs-5 mb-1">Time in Clan</span>
-                            <strong class="fs-4">@CalculateTimeInClan(player.CreatedAt)</strong>
-                        </div>
-                    </div>
+                    <!-- Profile Card -->
+                    <div class="card sb-card rounded-4 p-4 text-center">
 
-                    <!-- Experience (Exp) -->
-                    <div class="col-md-4">
-                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
-                            <span class="text-muted d-block fs-5 mb-1">Experience (Exp)</span>
-                            <strong class="fs-4">@player.Exp.ToString("N0")</strong>
-                        </div>
-                    </div>
+                        <div class="position-relative mx-auto mb-3"
+                             style="width: 100px; height: 100px;">
 
-                    <!-- Efficient Hours Played (Ehp) -->
-                    <div class="col-md-4">
-                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
-                            <span class="text-muted d-block fs-5 mb-1">Efficient Hours Played (Ehp)</span>
-                            <strong class="fs-4">@player.Ehp.ToString("N2")</strong>
-                        </div>
-                    </div>
-
-                    <!-- Efficient Hours bossed (Ehb) -->
-                    <div class="col-md-4">
-                        <div class="p-4 border bg-light rounded-3 h-100 shadow-sm">
-                            <span class="text-muted d-block fs-5 mb-1">Efficient Bossing Hours (Ehb)</span>
-                            <strong class="fs-4">@player.Ehb.ToString("N2")</strong>
-                        </div>
-                    </div>
-
-                    <div class="col-md-12">
-                        <div class="p-4 border bg-light rounded-3 shadow-sm">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-muted fs-5">Events</span>
-                                <div>
-                                    @if (!isEditingEvents)
-                                    {
-                                        <button class="btn btn-primary btn-outline-primary btn-sm px-3" @onclick="ToggleEditEvents" title="Edit Events">
-                                            ✏️ Edit
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button class="btn btn-primary btn-sm px-3 me-2" @onclick="SaveEventsAsync" disabled="@isSavingEvents">
-                                            @if (isSavingEvents)
-                                            {
-                                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-                                                <span>Saving...</span>
-                                            }
-                                            else
-                                            {
-                                                <span>Save</span>
-                                            }
-                                        </button>
-                                        <button class="btn btn-outline-secondary btn-sm px-3" @onclick="CancelEditEvents" disabled="@isSavingEvents">
-                                            Cancel
-                                        </button>
-                                    }
-                                </div>
+                            <div class="rounded-circle sb-profile-avatar p-1 h-100 d-flex align-items-center justify-content-center">
+                                <span class="display-5">👤</span>
                             </div>
 
-                            @if (!string.IsNullOrEmpty(eventsStatusMessage))
-                            {
-                                <div class="alert alert-success py-1 px-2 mb-2" role="alert">
-                                    <small>@eventsStatusMessage</small>
-                                </div>
-                            }
-
-                            @if (!isEditingEvents)
-                            {
-                                <strong class="fs-4 d-block">@player.Events</strong>
-                            }
-                            else
-                            {
-                                <input type="number" class="form-control fs-5" @bind="tempEvents" />
-                            }
                         </div>
-                    </div>
 
-                    <!-- Editable Notes -->
-                    <div class="col-md-12">
-                        <div class="p-4 border bg-light rounded-3 shadow-sm">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-muted fs-5">Player Notes</span>
-                                <button class="btn btn-primary btn-sm px-3" @onclick="SaveNotesAsync" disabled="@isSavingNotes">
-                                    @if (isSavingNotes)
-                                    {
-                                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-                                        <span>Saving...</span>
-                                    }
-                                    else
-                                    {
-                                        <span>Save Notes</span>
-                                    }
-                                </button>
+                        <span class="sb-label small uppercase tracking-wider">
+                            IN GAME NAME
+                        </span>
+
+                        <h3 class="fw-bold mb-1">
+                            @player.DisplayName
+                        </h3>
+
+                        <span class="text-light fw-medium">
+                            @(!string.IsNullOrEmpty(discordUsername)
+                                ? "@" + discordUsername
+                                : "Not Linked")
+                        </span>
+
+                        <!-- LINKED ACCOUNTS -->
+                        <div class="d-flex justify-content-center align-items-center gap-3 text-muted fs-6 mt-1">
+
+                            <div class="position-relative d-flex align-items-center">
+
+                                @if (linkedAccounts != null && linkedAccounts.Count > 0)
+                                {
+                                    <button type="button"
+                                            class="btn btn-link text-decoration-none p-0 d-flex align-items-center text-danger"
+                                            @onclick="ToggleLinkedAccounts"
+                                            title="@($"{linkedAccounts.Count} linked account{(linkedAccounts.Count == 1 ? "" : "s")}")">
+
+                                        <span style="font-size: 1.1rem; line-height: 20px;">🔗</span>
+
+                                        @if (linkedAccounts.Count > 1)
+                                        {
+                                            <span class="badge rounded-pill bg-danger ms-1"
+                                                  style="font-size: 0.6rem;">
+                                                @linkedAccounts.Count
+                                            </span>
+                                        }
+
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span title="No linked accounts"
+                                          style="display: flex; align-items: center; opacity: 0.4; cursor: default;">
+                                        <span style="font-size: 1.1rem; line-height: 20px;">🔗</span>
+                                    </span>
+                                }
+
+                                @if (showLinkedAccounts && linkedAccounts != null && linkedAccounts.Count > 0)
+                                {
+                                    <div class="position-absolute start-50 translate-middle-x mt-2"
+                                         style="z-index: 1050; min-width: 240px;">
+
+                                        <div class="dropdown-menu show sb-dropdown shadow w-100 p-0">
+
+                                            <div class="px-3 py-2 sb-dropdown-header">
+                                                <span class="text-danger fw-bold small">
+                                                    LINKED ACCOUNTS
+                                                </span>
+                                            </div>
+
+                                            @foreach (var account in linkedAccounts)
+                                            {
+                                                <a href="/player-details/@account.Id"
+                                                   class="dropdown-item sb-dropdown-item d-flex justify-content-between align-items-center py-2">
+
+                                                    <span class="fw-semibold">
+                                                        @account.DisplayName
+                                                    </span>
+
+                                                    @if (!string.IsNullOrEmpty(account.CustomType))
+                                                    {
+                                                        <span class="badge bg-secondary text-dark ms-2"
+                                                              style="font-size: 0.65rem;">
+                                                            @account.CustomType
+                                                        </span>
+                                                    }
+
+                                                </a>
+                                            }
+
+                                        </div>
+
+                                    </div>
+                                }
+
                             </div>
 
-                            @if (!string.IsNullOrEmpty(statusMessage))
-                            {
-                                <div class="alert alert-success py-1 px-2 mb-2" role="alert">
-                                    <small>@statusMessage</small>
-                                </div>
-                            }
+                            <!-- Discord -->
+                            <div class="d-flex align-items-center">
 
-                            <textarea class="form-control fs-5" rows="4" placeholder="Enter notes about this player here..." @bind="player.Notes"></textarea>
+                                @if (player?.DiscordId != null)
+                                {
+                                    <button type="button"
+                                            @onclick="() => CopyDiscordId(player.DiscordId)"
+                                            title="Copy Discord ID"
+                                            class="btn p-0 border-0 d-flex align-items-center">
+
+                                        <img src="/Resources/Images/Links/discord.png"
+                                             alt="Discord"
+                                             style="width: 20px; height: 20px; object-fit: contain;" />
+
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span title="No Discord ID linked"
+                                          style="display: flex; align-items: center; opacity: 0.4; cursor: default;">
+
+                                        <img src="/Resources/Images/Links/discord.png"
+                                             alt="Discord"
+                                             style="width: 20px; height: 20px; object-fit: contain;" />
+
+                                    </span>
+                                }
+
+                            </div>
+
+                            <!-- Wise Old Man -->
+                            <div class="d-flex align-items-center">
+
+                                <a href="@($"https://wiseoldman.net/players/{Uri.EscapeDataString(player.DisplayName)}")"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   title="View Wise Old Man profile"
+                                   class="d-flex align-items-center">
+
+                                    <img src="/Resources/Images/Links/wom.png"
+                                         alt="Wise Old Man"
+                                         style="width: 20px; height: 20px; object-fit: contain;" />
+
+                                </a>
+
+                            </div>
+
+                            <!-- RuneProfile -->
+                            <div class="d-flex align-items-center">
+
+                                <a href="@($"https://www.runeprofile.com/{Uri.EscapeDataString(player?.DisplayName ?? "")}")"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   title="View RuneProfile profile"
+                                   class="d-flex align-items-center">
+
+                                    <img src="/Resources/Images/Links/runeprofile.png"
+                                         alt="RuneProfile"
+                                         style="width: 20px; height: 20px; object-fit: contain;" />
+
+                                </a>
+
+                            </div>
+
                         </div>
+
                     </div>
+
+
+                    <!-- WOM Details -->
+                    <div class="card sb-card rounded-4 p-4">
+
+                        <h6 class="sb-section-title sb-section-title-with-icon fw-bold mb-3 pb-2">
+                            WOM DETAILS
+                            <span class="sb-section-title-icon">↗</span>
+                        </h6>
+
+                        <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+
+                            <li class="sb-stat-row">
+                                <span class="text-muted">Country</span>
+                                <span class="fw-semibold">
+                                    @(string.IsNullOrWhiteSpace(player.Country)
+                                        ? "N/A"
+                                        : player.Country)
+                                </span>
+                            </li>
+
+                            <li class="sb-stat-row">
+                                <span class="text-muted">Overall XP</span>
+                                <span class="fw-semibold">
+                                    @player.Exp.ToString("N0")
+                                </span>
+                            </li>
+
+                            <li class="sb-stat-row">
+                                <span class="text-muted">EHP</span>
+                                <span class="fw-semibold">
+                                    @player.Ehp.ToString("N2")
+                                </span>
+                            </li>
+
+                            <li class="sb-stat-row">
+                                <span class="text-muted">EHB</span>
+                                <span class="fw-semibold">
+                                    @player.Ehb.ToString("N2")
+                                </span>
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+
+                    <!-- Scythebound Info -->
+                    <div class="card sb-card rounded-4 p-4">
+
+                        <h6 class="sb-section-title fw-bold mb-3 pb-2 text-center">
+                            SCYTHEBOUND INFO
+                        </h6>
+
+                        <div class="sb-stat-row">
+
+                            <span class="text-muted">
+                                Rank
+                            </span>
+
+                            <span class="text-danger fw-bold">
+                                @(string.IsNullOrEmpty(playerRole)
+                                    ? "N/A"
+                                    : FormatRole(playerRole))
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Counters -->
+                    <div class="row g-2">
+
+                        <div class="col-6">
+
+                            <div class="card sb-card sb-counter-card p-3 text-center rounded-4 h-100">
+
+                                <span class="fs-3 text-danger mb-1">
+                                    📅
+                                </span>
+
+                                <h4 class="fw-bold mb-0">
+                                    @player.Events
+                                </h4>
+
+                                <small class="text-muted"
+                                       style="font-size: 0.75rem;">
+                                    Events Participated
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-6">
+
+                            <div class="card sb-card sb-counter-card p-3 text-center rounded-4 h-100">
+
+                                <span class="fs-3 text-danger mb-1">
+                                    🏆
+                                </span>
+
+                                <h4 class="fw-bold mb-0">
+                                    @GetTotalAchievementsEarnedCount()
+                                </h4>
+
+                                <small class="text-muted"
+                                       style="font-size: 0.75rem;">
+                                    Achievements Earned
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Member Info -->
+                    <div class="card sb-card p-3 rounded-4 text-muted small d-flex flex-column gap-1">
+
+                        <div>
+                            Member Since:
+                            <span class="text-light">
+                                @(player.CreatedAt != DateTime.MinValue
+                                    ? player.CreatedAt.ToLocalTime().ToString("MMMM dd, yyyy")
+                                    : "N/A")
+                            </span>
+                        </div>
+
+                        <div>
+                            Time in Clan:
+                            <span class="text-light">
+                                @CalculateTimeInClan(player.CreatedAt)
+                            </span>
+                        </div>
+
+                    </div>
+
                 </div>
+
             </div>
+
+
+            <!-- COLUMN 2 -->
+            <div class="col-xl-6 col-lg-8">
+
+                <div class="d-flex flex-column gap-4">
+
+                    <!-- NOTES -->
+                    <div class="card sb-card rounded-4 p-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+
+                            <h6 class="sb-section-title fw-bold mb-0">
+                                NOTES
+                            </h6>
+
+                            <button class="btn sb-btn-outline-danger btn-sm px-3"
+                                    @onclick="SaveNotesAsync"
+                                    disabled="@isSavingNotes">
+
+                                @if (isSavingNotes)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"
+                                          role="status">
+                                    </span>
+
+                                    <span>Saving...</span>
+                                }
+                                else
+                                {
+                                    <span>Save Notes</span>
+                                }
+
+                            </button>
+
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(statusMessage))
+                        {
+                            <div class="alert alert-success py-1 px-2 mb-2">
+                                <small>@statusMessage</small>
+                            </div>
+                        }
+
+                        <textarea class="form-control sb-input"
+                                  rows="4"
+                                  placeholder="Enter notes about this player here..."
+                                  @bind="player.Notes">
+                        </textarea>
+
+                    </div>
+
+
+                    <!-- EVENTS -->
+                    <div class="card sb-card rounded-4 p-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-3 sb-section-divider pb-2">
+
+                            <h6 class="sb-section-title fw-bold mb-0">
+                                EVENTS PARTICIPATED (@player.Events)
+                            </h6>
+
+                            <button class="btn sb-btn-secondary btn-sm"
+                                    @onclick="ToggleEditEvents">
+
+                                @(isEditingEvents
+                                    ? "Cancel"
+                                    : "✏️ Edit Count")
+
+                            </button>
+
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(eventsStatusMessage))
+                        {
+                            <div class="alert alert-success py-1 px-2 mb-2">
+                                <small>@eventsStatusMessage</small>
+                            </div>
+                        }
+
+                        @if (isEditingEvents)
+                        {
+                            <div class="d-flex gap-2 mb-3">
+
+                                <input type="number"
+                                       class="form-control sb-input"
+                                       @bind="tempEvents" />
+
+                                <button class="btn sb-btn-primary btn-sm px-3"
+                                        @onclick="SaveEventsAsync"
+                                        disabled="@isSavingEvents">
+                                    Save
+                                </button>
+
+                            </div>
+                        }
+
+                        <div class="text-muted small fst-italic text-center py-4">
+                            No event history items to display.
+                            Event records can be re-added later.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- COLUMN 3 -->
+            <div class="col-xl-4 col-lg-12">
+
+                <div class="card sb-card rounded-4 p-4">
+
+                    <div class="d-flex justify-content-between align-items-center mb-4 sb-section-divider pb-3">
+
+                        <h5 class="sb-section-title fw-bold mb-0">
+                            SCYTHEBOUND LEGENDS ACHIEVEMENTS
+                        </h5>
+
+                        <span class="text-danger">
+                            ✏️
+                        </span>
+
+                    </div>
+
+
+                    <!-- MEGARARE -->
+                    <div class="mb-4">
+
+                        <h6 class="sb-achievement-heading small fw-bold uppercase">
+                            MEGARARE TITLES
+                        </h6>
+
+                        <div class="row g-2">
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox"
+                                           type="checkbox"
+                                           id="ach-tbow"
+                                           checked="@IsAchievementUnlocked("tbow")"
+                                           @onchange="@(e => HandleAchievementToggle("tbow", e))" />
+                                    <label class="form-check-label sb-achievement-label"
+                                           for="ach-tbow">
+                                        Tbow
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox"
+                                           type="checkbox"
+                                           id="ach-scythe"
+                                           checked="@IsAchievementUnlocked("scythe")"
+                                           @onchange="@(e => HandleAchievementToggle("scythe", e))" />
+                                    <label class="form-check-label sb-achievement-label"
+                                           for="ach-scythe">
+                                        Scythe
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox"
+                                           type="checkbox"
+                                           id="ach-shadow"
+                                           checked="@IsAchievementUnlocked("shadow")"
+                                           @onchange="@(e => HandleAchievementToggle("shadow", e))" />
+                                    <label class="form-check-label sb-achievement-label"
+                                           for="ach-shadow">
+                                        Shadow
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- PVM -->
+                    <div class="mb-4">
+
+                        <h6 class="sb-achievement-heading small fw-bold uppercase">
+                            PVM ACHIEVEMENTS
+                        </h6>
+
+                        <div class="row g-2">
+
+                            <div class="col-md-6">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox"
+                                           id="ach-gm-ca"
+                                           checked="@IsAchievementUnlocked("grandmaster_ca")"
+                                           @onchange="@(e => HandleAchievementToggle("grandmaster_ca", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-gm-ca">
+                                        Grandmaster CA
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox"
+                                           id="ach-master-ca"
+                                           checked="@IsAchievementUnlocked("master_ca")"
+                                           @onchange="@(e => HandleAchievementToggle("master_ca", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-master-ca">
+                                        Master CA
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox"
+                                           id="ach-elite-ca"
+                                           checked="@IsAchievementUnlocked("elite_ca")"
+                                           @onchange="@(e => HandleAchievementToggle("elite_ca", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-elite-ca">
+                                        Elite CA
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox"
+                                           id="ach-blood-torva"
+                                           checked="@IsAchievementUnlocked("blood_torva")"
+                                           @onchange="@(e => HandleAchievementToggle("blood_torva", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-blood-torva">
+                                        Blood Torva
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox"
+                                           id="ach-radiant"
+                                           checked="@IsAchievementUnlocked("radiant_oathplate")"
+                                           @onchange="@(e => HandleAchievementToggle("radiant_oathplate", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-radiant">
+                                        Radiant Oathplate
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CAPES -->
+                    <div class="mb-4">
+
+                        <h6 class="sb-achievement-heading small fw-bold uppercase">
+                            ACHIEVEMENT CAPES
+                        </h6>
+
+                        <div class="row g-2">
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-max"
+                                           checked="@IsAchievementUnlocked("max_cape")"
+                                           @onchange="@(e => HandleAchievementToggle("max_cape", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-max">Max Cape</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-infernal"
+                                           checked="@IsAchievementUnlocked("infernal_cape")"
+                                           @onchange="@(e => HandleAchievementToggle("infernal_cape", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-infernal">Infernal</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-quiver"
+                                           checked="@IsAchievementUnlocked("quiver")"
+                                           @onchange="@(e => HandleAchievementToggle("quiver", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-quiver">Quiver</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-fire"
+                                           checked="@IsAchievementUnlocked("fire_cape")"
+                                           @onchange="@(e => HandleAchievementToggle("fire_cape", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-fire">Fire Cape</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-quest"
+                                           checked="@IsAchievementUnlocked("quest_cape")"
+                                           @onchange="@(e => HandleAchievementToggle("quest_cape", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-quest">Quest Cape</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-diary"
+                                           checked="@IsAchievementUnlocked("diary_cape")"
+                                           @onchange="@(e => HandleAchievementToggle("diary_cape", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-diary">Diary Cape</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-music"
+                                           checked="@IsAchievementUnlocked("music_cape")"
+                                           @onchange="@(e => HandleAchievementToggle("music_cape", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-music">Music Cape</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-champion"
+                                           checked="@IsAchievementUnlocked("champion_cape")"
+                                           @onchange="@(e => HandleAchievementToggle("champion_cape", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-champion">Champion</label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CLOGGERS -->
+                    <div>
+
+                        <h6 class="sb-achievement-heading small fw-bold uppercase">
+                            CLOGGERS
+                        </h6>
+
+                        <div class="row g-2">
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-black"
+                                           checked="@IsAchievementUnlocked("black_clogger")"
+                                           @onchange="@(e => HandleAchievementToggle("black_clogger", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-black">Black</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-mithril"
+                                           checked="@IsAchievementUnlocked("mithril_clogger")"
+                                           @onchange="@(e => HandleAchievementToggle("mithril_clogger", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-mithril">Mithril</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-adamant"
+                                           checked="@IsAchievementUnlocked("adamant_clogger")"
+                                           @onchange="@(e => HandleAchievementToggle("adamant_clogger", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-adamant">Adamant</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-rune"
+                                           checked="@IsAchievementUnlocked("rune_clogger")"
+                                           @onchange="@(e => HandleAchievementToggle("rune_clogger", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-rune">Rune</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-dragon"
+                                           checked="@IsAchievementUnlocked("dragon_clogger")"
+                                           @onchange="@(e => HandleAchievementToggle("dragon_clogger", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-dragon">Dragon</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check sb-achievement-tile h-100">
+                                    <input class="form-check-input sb-achievement-checkbox" type="checkbox" id="ach-gilded"
+                                           checked="@IsAchievementUnlocked("gilded_clogger")"
+                                           @onchange="@(e => HandleAchievementToggle("gilded_clogger", e))" />
+                                    <label class="form-check-label sb-achievement-label" for="ach-gilded">Gilded</label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
     }
 </div>

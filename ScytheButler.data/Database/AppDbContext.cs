@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ScytheButler.data.DatabaseModels.WomModels;
 using ScytheButler.Models;
-using System.Reflection.Emit;
+// Make sure to include the namespace where your PlayerAchievement model is located, for example:
+// using Dashboard.Web.Models.PlayerDetails;
 
 namespace ScytheButler.Data
 {
@@ -17,6 +18,9 @@ namespace ScytheButler.Data
         // --- Discord Bot Coffer Data ---
         public DbSet<Balance> Balances => Set<Balance>();
         public DbSet<Transaction> Transactions => Set<Transaction>();
+
+        // --- Player Achievements ---
+        public DbSet<PlayerAchievement> PlayerAchievements => Set<PlayerAchievement>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -39,6 +43,15 @@ namespace ScytheButler.Data
             // Coffer/Balance configuration
             modelBuilder.Entity<Balance>()
                 .HasKey(b => b.Bank);
+
+            // --- Player Achievements Configuration ---
+            modelBuilder.Entity<PlayerAchievement>()
+                .HasKey(pa => pa.Id);
+
+            // Enforce the unique constraint matching the SQL schema script
+            modelBuilder.Entity<PlayerAchievement>()
+                .HasIndex(pa => new { pa.PlayerId, pa.AchievementKey })
+                .IsUnique();
         }
     }
 }

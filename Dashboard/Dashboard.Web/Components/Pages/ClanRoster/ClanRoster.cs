@@ -21,7 +21,7 @@
         private bool SortAscending = true;
 
         private int currentPage = 1;
-        private int pageSize = 25;
+        private int pageSize = 20;
 
         private int TotalPages => clanData == null ? 0 : (int)Math.Ceiling((double)TotalFilteredCount / pageSize);
 
