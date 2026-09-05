@@ -21,6 +21,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Register WomService with its HTTP Client
 builder.Services.AddHttpClient<WomService>();
+builder.Services.AddScoped<AchievementService>();
 builder.Services.AddScoped<DiscordRoleSyncService>();
 
 var app = builder.Build();

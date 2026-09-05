@@ -25,4 +25,8 @@
     <ProjectReference Include="..\ScytheButler.data\ScytheButler.data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Assets\" />
+  </ItemGroup>
+
 </Project>

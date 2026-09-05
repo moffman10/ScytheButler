@@ -45,7 +45,7 @@ public class DiscordRoleSyncService
 
         var memberships = await _db.Memberships
             .Include(m => m.Player)
-            .Where(m => m.GroupId == groupId && m.Player.DiscordId != null)
+            .Where(m => m.GroupId == groupId && m.Player.DiscordId != null && m.Player.LinkType == "primary")
             .ToListAsync();
 
         using var httpClient = new HttpClient();

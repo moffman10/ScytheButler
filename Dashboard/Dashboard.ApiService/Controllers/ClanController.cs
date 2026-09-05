@@ -8,7 +8,7 @@ using ScytheButler.Data;
 using Dashboard.ApiService.Helpers;
 using System.Text.Json;
 using System.Net.Http.Headers;
-using ScytheButler.Models; // Ensure your PlayerAchievement model's namespace is included
+using ScytheButler.Models; 
 
 namespace Dashboard.ApiService.Controllers;
 
@@ -19,13 +19,15 @@ public class ClanController : ControllerBase
     private readonly AppDbContext _db;
     private readonly WomService _womService;
     private readonly DiscordRoleSyncService _discordRoleSyncService;
+    private readonly AchievementService _achievementService;
     private readonly IConfiguration _configuration;
 
-    public ClanController(AppDbContext db, WomService womService, DiscordRoleSyncService discordRoleSyncService, IConfiguration configuration)
+    public ClanController(AppDbContext db, WomService womService, DiscordRoleSyncService discordRoleSyncService, AchievementService achievementService, IConfiguration configuration)
     {
         _db = db;
         _womService = womService;
         _discordRoleSyncService = discordRoleSyncService;
+        _achievementService = achievementService;
         _configuration = configuration;
     }
 
@@ -200,39 +202,51 @@ public class ClanController : ControllerBase
         record.UnlockedAt = dto.IsUnlocked ? DateTime.UtcNow : null;
         await _db.SaveChangesAsync();
 
-        // 2. Sync with Discord if the player has a linked Discord account and a role mapping exists
+        string? botToken = _configuration["DiscordToken"] ?? _configuration["Discord:Token"];
+        string? guildId = _configuration["Discord:GuildId"];
+        string playerName = player.Username ?? player.DisplayName ?? "Unknown Member"; // Update property name based on your database model
+
+        // 2. Sync Role with Discord if the player has a linked Discord account and a role mapping exists
         if (player.DiscordId.HasValue && player.LinkType == "primary")
         {
             string? roleId = _configuration[$"Discord:AchievementRoleMappings:{dto.AchievementKey}"];
-            if (!string.IsNullOrEmpty(roleId))
+            if (!string.IsNullOrEmpty(roleId) && !string.IsNullOrEmpty(botToken) && !string.IsNullOrEmpty(guildId))
             {
-                string? botToken = _configuration["DiscordToken"] ?? _configuration["Discord:Token"];
-                string? guildId = _configuration["Discord:GuildId"];
-
-                if (!string.IsNullOrEmpty(botToken) && !string.IsNullOrEmpty(guildId))
+                try
                 {
-                    try
+                    using var httpClient = new HttpClient();
+                    httpClient.DefaultRequestHeaders.Add("User-Agent", "ScytheButler (Clan Dashboard, v1.0)");
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bot", botToken);
+
+                    string memberUrl = $"https://discord.com/api/v10/guilds/{guildId}/members/{player.DiscordId.Value}";
+
+                    if (dto.IsUnlocked)
                     {
-                        using var httpClient = new HttpClient();
-                        httpClient.DefaultRequestHeaders.Add("User-Agent", "ScytheButler (Clan Dashboard, v1.0)");
-                        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bot", botToken);
-
-                        string memberUrl = $"https://discord.com/api/v10/guilds/{guildId}/members/{player.DiscordId.Value}";
-
-                        if (dto.IsUnlocked)
-                        {
-                            await httpClient.PutAsync($"{memberUrl}/roles/{roleId}", null);
-                        }
-                        else
-                        {
-                            await httpClient.DeleteAsync($"{memberUrl}/roles/{roleId}");
-                        }
+                        await httpClient.PutAsync($"{memberUrl}/roles/{roleId}", null);
                     }
-                    catch
+                    else
                     {
-                        // Handle or log discord api errors gracefully if needed
+                        await httpClient.DeleteAsync($"{memberUrl}/roles/{roleId}");
                     }
                 }
+                catch
+                {
+                    // Handle or log discord api errors gracefully if needed
+                }
+            }
+        }
+
+        // 3. Sync the Discord Embed Message (adds/removes player name from the list)
+        string? channelId = _configuration["Discord:AchievementChannelId"];
+        if (!string.IsNullOrEmpty(channelId))
+        {
+            try
+            {
+                await _achievementService.SyncAchievementMessageContentAsync(channelId, dto.AchievementKey, playerName, dto.IsUnlocked);
+            }
+            catch
+            {
+                // Handle or log embed patch errors gracefully if needed
             }
         }
 
