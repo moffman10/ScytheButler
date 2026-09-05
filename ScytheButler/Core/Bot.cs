@@ -57,7 +57,6 @@ namespace ScytheButler.Core
     .AddSingleton<WiseOldManService>()
     .AddSingleton<DiceService>()
     .AddSingleton<AccountService>()
-    .AddSingleton<AchievementService>()
 
     .AddSingleton<CofferAutoCompleteHandler>()
     .AddSingleton<ReasonAutocompleteHandler>()

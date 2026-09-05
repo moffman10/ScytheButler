@@ -1,0 +1,69 @@
+﻿@page "/login"
+@attribute [AllowAnonymous]
+@using Microsoft.AspNetCore.Authorization
+
+<PageTitle>Login</PageTitle>
+
+<div class="fixed-login-container">
+
+    <!-- Full-screen background -->
+    <img src="/Resources/Images/Backgrounds/HomePageBackground.png"
+         alt="Scythebound Background"
+         class="login-background" />
+
+    <!-- Login content -->
+    <div class="login-content">
+
+        <div class="login-card">
+            <h1>Login</h1>
+
+            <form method="post" action="/account/login">
+
+                <AntiforgeryToken />
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+
+                    <input id="username"
+                           name="Username"
+                           class="form-control"
+                           type="text"
+                           autocomplete="username"
+                           required />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+
+                    <input id="password"
+                           name="Password"
+                           class="form-control"
+                           type="password"
+                           autocomplete="current-password"
+                           required />
+                </div>
+
+                <div class="form-group">
+                    <label class="remember-me">
+                        <input type="checkbox"
+                               name="RememberMe"
+                               value="true" />
+
+                        <span>Remember me</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Login
+                </button>
+
+            </form>
+
+            <div class="login-links">
+                <span>Don't have an account?</span>
+                <a href="/register">Create an account</a>
+            </div>
+        </div>
+
+    </div>
+</div>

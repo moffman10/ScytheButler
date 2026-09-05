@@ -1,0 +1,357 @@
+/* =========================================================
+   SCYTHEBOUND LOGIN / REGISTER THEME
+   ========================================================= */
+:root {
+    --sb-bg-dark: #121214;
+    --sb-crimson: #8b0000;
+    --sb-crimson-bright: #b31313;
+    --sb-crimson-hover: #a50000;
+    --sb-gold: #c5a059;
+    --sb-text-main: #ffffff;
+    --sb-text-muted: #94949b;
+}
+
+
+/* =========================================================
+   FIXED PAGE CONTAINER
+   ========================================================= */
+
+.fixed-login-container {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100vw;
+    height: calc(100vh - 60px);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #121214;
+}
+
+
+/* =========================================================
+   FULL-SCREEN BACKGROUND
+   ========================================================= */
+
+.login-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center center;
+    margin: 0;
+    padding: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   DARK BACKGROUND OVERLAY
+   ========================================================= */
+
+.fixed-login-container::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    background: linear-gradient( 180deg, rgba(8, 8, 11, 0.30) 0%, rgba(8, 8, 11, 0.48) 100% );
+}
+
+
+/* =========================================================
+   LOGIN / REGISTER CONTENT
+   ========================================================= */
+
+.login-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 40px 20px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+
+    /* =========================================================
+   LOGIN / REGISTER FORM CARD
+   ========================================================= */
+
+    /*
+ * IMPORTANT:
+ *
+ * This is deliberately GREY and partially transparent.
+ * The background image should remain visible through it.
+ */
+
+    .login-content .login-card {
+        width: 100%;
+        max-width: 430px;
+        padding: 2rem;
+        background: rgba(30, 30, 35, 0.72) !important;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 8px;
+        color: #ffffff;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.50), 0 0 20px rgba(139, 0, 0, 0.10);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-sizing: border-box;
+    }
+
+
+        /* =========================================================
+   TITLE
+   ========================================================= */
+
+        .login-content .login-card h1 {
+            margin: 0 0 1.5rem 0;
+            color: #ffffff;
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 0.6px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.85);
+        }
+
+
+    /* =========================================================
+   FORM GROUPS
+   ========================================================= */
+
+    .login-content .form-group {
+        margin-bottom: 1.15rem;
+    }
+
+
+        /* =========================================================
+   LABELS
+   ========================================================= */
+
+        .login-content .form-group label {
+            display: block;
+            margin-bottom: 0.45rem;
+            color: #ffffff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.70);
+        }
+
+
+    /* =========================================================
+   GREY / SEE-THROUGH INPUT BOXES
+   ========================================================= */
+
+    /*
+ * These are intentionally LIGHTER than the form card.
+ *
+ * Card:
+ *     rgba(55, 55, 60, 0.72)
+ *
+ * Inputs:
+ *     rgba(145, 145, 150, 0.55)
+ *
+ * This gives the inputs a clearly visible grey glass effect.
+ */
+
+    .login-content .form-control {
+        display: block !important;
+        width: 100% !important;
+        min-height: 38px !important;
+        padding: 0.375rem 0.75rem !important;
+        box-sizing: border-box !important;
+        background: rgba(45, 45, 55, 0.55) !important;
+        border: 1px solid rgba(255, 255, 255, 0.42) !important;
+        border-radius: 5px !important;
+        color: #ffffff !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.20) !important;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+
+        /* =========================================================
+   INPUT HOVER
+   ========================================================= */
+
+        .login-content .form-control:hover {
+            background: rgba(155, 155, 160, 0.62) !important;
+            border-color: rgba(255, 255, 255, 0.58) !important;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.10), 0 2px 5px rgba(0, 0, 0, 0.25) !important;
+        }
+
+
+        /* =========================================================
+   INPUT FOCUS
+   ========================================================= */
+
+        .login-content .form-control:focus {
+            background: rgba(165, 165, 170, 0.68) !important;
+            color: #ffffff !important;
+            border-color: #8b0000 !important;
+            box-shadow: 0 0 0 0.20rem rgba(139, 0, 0, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.10) !important;
+            outline: none !important;
+        }
+
+
+        /* =========================================================
+   PLACEHOLDER
+   ========================================================= */
+
+        .login-content .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.70) !important;
+            opacity: 1 !important;
+        }
+
+
+    /* =========================================================
+   REMEMBER ME
+   ========================================================= */
+
+    .login-content .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #ffffff;
+        font-size: 0.82rem;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.70);
+    }
+
+
+        .login-content .remember-me input {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
+            accent-color: #8b0000;
+        }
+
+
+    /* =========================================================
+   PRIMARY BUTTON
+   ========================================================= */
+
+    .login-content .btn-primary {
+        width: 100%;
+        background: linear-gradient( 90deg, #720000 0%, #8b0000 100% ) !important;
+        border-color: #610000 !important;
+        color: #ffffff !important;
+        box-shadow: 0 3px 10px rgba(139, 0, 0, 0.30);
+        transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+
+        /* =========================================================
+   BUTTON HOVER / FOCUS
+   ========================================================= */
+
+        .login-content .btn-primary:hover,
+        .login-content .btn-primary:focus {
+            background: linear-gradient( 90deg, #8b0000 0%, #a50000 100% ) !important;
+            border-color: #8b0000 !important;
+            color: #ffffff !important;
+            box-shadow: 0 5px 15px rgba(139, 0, 0, 0.52);
+        }
+
+
+    /* =========================================================
+   VALIDATION
+   ========================================================= */
+
+    .login-content .validation-message,
+    .login-content .validation-summary {
+        margin-top: 0.4rem;
+        color: #ffb3b3 !important;
+        font-size: 0.78rem;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.70);
+    }
+
+
+    /* =========================================================
+   ERROR
+   ========================================================= */
+
+    .login-content .login-error {
+        margin-bottom: 1rem;
+        padding: 0.7rem 0.8rem;
+        background: rgba(139, 0, 0, 0.30);
+        border: 1px solid rgba(139, 0, 0, 0.60);
+        border-radius: 5px;
+        color: #ffb3b3;
+        font-size: 0.82rem;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+
+
+    /* =========================================================
+   BOTTOM LINKS
+   ========================================================= */
+
+    .login-content .login-links {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 1.5rem;
+        color: #c0c0c5;
+        font-size: 0.82rem;
+        text-align: center;
+    }
+
+
+        /* =========================================================
+   LINKS
+   ========================================================= */
+
+        .login-content .login-links a {
+            color: #c5a059 !important;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+
+            .login-content .login-links a:hover {
+                color: #dfbd71 !important;
+                text-decoration: underline;
+            }
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+
+    .fixed-login-container {
+        top: 60px;
+        width: 100vw;
+        height: calc(100vh - 60px);
+        overflow: hidden;
+    }
+
+    .login-content {
+        padding: 20px 15px;
+    }
+
+        .login-content .login-card {
+            max-width: 100%;
+            padding: 1.5rem;
+        }
+
+            .login-content .login-card h1 {
+                font-size: 1.55rem;
+            }
+}

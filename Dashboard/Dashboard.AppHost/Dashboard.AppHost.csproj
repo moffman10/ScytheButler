@@ -1,4 +1,4 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
+﻿<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -7,6 +7,13 @@
     <Nullable>enable</Nullable>
     <UserSecretsId>26ab8c3e-ce1f-4c15-9c65-de9b1f9f112e</UserSecretsId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\ScytheButler\ScytheButler.csproj" />

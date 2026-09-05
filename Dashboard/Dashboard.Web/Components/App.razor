@@ -11,18 +11,25 @@
     <link rel="stylesheet" href="@Assets["Dashboard.Web.styles.css"]" />
 
     <!-- Bootstrap Icons CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
     <!-- Custom CSS files -->
     <link href="Dashboard.Web.styles.css" rel="stylesheet" />
 
-    <!-- Custom Images folder (Resources/Images/Icons/icon.png) -->
-    <link rel="icon" type="image/png" sizes="128x128" href="Resources/Images/Icons/icon.png?v=1" />
+    <!-- Custom Images folder -->
+    <link rel="icon"
+          type="image/png"
+          sizes="128x128"
+          href="Resources/Images/Icons/icon.png?v=1" />
 
     <ImportMap />
-    <HeadOutlet />
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
+
 <body>
-    <Routes />
-    <script src="@Assets["_framework/blazor.web.js"]"></script></body>
+    <Routes @rendermode="InteractiveServer" />
+
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
 </html>

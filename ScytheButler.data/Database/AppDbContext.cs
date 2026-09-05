@@ -1,14 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using ScytheButler.data.DatabaseModels.LoginModels;
 using ScytheButler.data.DatabaseModels.WomModels;
 using ScytheButler.Models;
-// Make sure to include the namespace where your PlayerAchievement model is located, for example:
-// using Dashboard.Web.Models.PlayerDetails;
 
 namespace ScytheButler.Data
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        public AppDbContext(
+            DbContextOptions<AppDbContext> options)
+            : base(options)
+        {
+        }
 
         // --- Wise Old Man Clan Roster ---
         public DbSet<WomGroup> Groups => Set<WomGroup>();
@@ -44,13 +48,16 @@ namespace ScytheButler.Data
             modelBuilder.Entity<Balance>()
                 .HasKey(b => b.Bank);
 
-            // --- Player Achievements Configuration ---
+            // Player Achievements
             modelBuilder.Entity<PlayerAchievement>()
                 .HasKey(pa => pa.Id);
 
-            // Enforce the unique constraint matching the SQL schema script
             modelBuilder.Entity<PlayerAchievement>()
-                .HasIndex(pa => new { pa.PlayerId, pa.AchievementKey })
+                .HasIndex(pa => new
+                {
+                    pa.PlayerId,
+                    pa.AchievementKey
+                })
                 .IsUnique();
         }
     }

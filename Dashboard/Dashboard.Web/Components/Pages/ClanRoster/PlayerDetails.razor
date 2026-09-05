@@ -1,5 +1,7 @@
 ﻿@page "/player-details/{playerId:int}"
+@attribute [Authorize]
 @namespace Dashboard.Web.Components.Pages.PlayerDetails
+@using Microsoft.AspNetCore.Authorization
 @rendermode InteractiveServer
 
 <PageTitle>Player Details - @(player?.DisplayName ?? "Loading...")</PageTitle>
