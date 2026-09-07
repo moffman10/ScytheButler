@@ -48,10 +48,20 @@
 
         protected override async Task OnInitializedAsync()
         {
-            await LoadPlayerDetailsAsync();
         }
 
+        private int _lastLoadedPlayerId;
 
+        protected override async Task OnParametersSetAsync()
+        {
+            // Only reload if the PlayerId in the URL has actually changed
+            if (PlayerId != _lastLoadedPlayerId)
+            {
+                _lastLoadedPlayerId = PlayerId;
+                showLinkedAccounts = false; // Close the dropdown when switching players
+                await LoadPlayerDetailsAsync();
+            }
+        }
         private async Task LoadPlayerDetailsAsync()
         {
             try
@@ -84,7 +94,7 @@
             }
         }
 
-        private void GoBack()
+        private async Task GoBack()
         {
             Navigation.NavigateTo("/clan-roster");
         }

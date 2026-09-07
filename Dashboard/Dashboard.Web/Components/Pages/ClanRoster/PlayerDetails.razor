@@ -64,12 +64,12 @@
         <div class="row g-4">
 
             <!-- COLUMN 1 -->
-            <div class="col-xl-2 col-lg-4">
+            <div class="col-xl-2 col-lg-4 player-profile-column">
 
                 <div class="d-flex flex-column gap-3">
 
                     <!-- Profile Card -->
-                    <div class="card sb-card rounded-4 p-4 text-center">
+                    <div class="card sb-card rounded-4 p-4 text-center position-relative" style="z-index: 10;">
 
                         <div class="position-relative mx-auto mb-3"
                              style="width: 100px; height: 100px;">
@@ -128,8 +128,7 @@
 
                                 @if (showLinkedAccounts && linkedAccounts != null && linkedAccounts.Count > 0)
                                 {
-                                    <div class="position-absolute start-50 translate-middle-x mt-2"
-                                         style="z-index: 1050; min-width: 240px;">
+                                    <div class="linked-accounts-dropdown position-absolute top-100 start-50 translate-middle-x mt-2" style="z-index: 9999; min-width: 200px;">
 
                                         <div class="dropdown-menu show sb-dropdown shadow w-100 p-0">
 

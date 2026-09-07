@@ -1,14 +1,17 @@
 ﻿namespace Dashboard.Web.Components.Pages.ClanRoster
 {
-    using Dashboard.Web.Models.ClanRoster;
-    using Microsoft.AspNetCore.Components;
     using Dashboard.Web.Helpers;
+    using Dashboard.Web.Models.ClanRoster;
+    using Dashboard.Web.Services;
+    using Microsoft.AspNetCore.Components;
     using System.Net.Http.Json;
 
     public partial class ClanRoster
     {
         [Inject]
         private HttpClient Http { get; set; } = default!;
+        [Inject]
+        private ClanRosterState RosterState { get; set; } = default!;
 
         private WomGroupDto? clanData;
         private string? errorMessage;
@@ -45,6 +48,11 @@
 
         protected override async Task OnInitializedAsync()
         {
+            currentPage = RosterState.CurrentPage;
+            searchTerm = RosterState.SearchTerm;
+            CurrentSortColumn = RosterState.SortColumn;
+            SortAscending = RosterState.SortAscending;
+
             await LoadDataAsync(forceWomSync: false);
         }
 
@@ -92,12 +100,15 @@
             if (page >= 1 && page <= TotalPages)
             {
                 currentPage = page;
+                RosterState.CurrentPage = currentPage;
             }
         }
         private void OnSearchInput(Microsoft.AspNetCore.Components.ChangeEventArgs e)
         {
             searchTerm = e.Value?.ToString() ?? string.Empty;
             currentPage = 1;
+            RosterState.SearchTerm = searchTerm; // Save to state
+            RosterState.CurrentPage = currentPage;
         }
 
         private int GetStartIndex() => TotalFilteredCount == 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
@@ -114,6 +125,7 @@
         private void SortBy(SortColumn column)
         {
             currentPage = 1;
+            RosterState.CurrentPage = currentPage;
 
             if (CurrentSortColumn == column)
             {
@@ -132,6 +144,9 @@
                     _ => true
                 };
             }
+
+            RosterState.SortColumn = CurrentSortColumn; 
+            RosterState.SortAscending = SortAscending;   
         }
 
         private IEnumerable<WomMembershipDto> GetSortedMembers()

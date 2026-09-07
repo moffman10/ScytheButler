@@ -1,5 +1,6 @@
 using Dashboard.Web.Components;
 using Dashboard.Web.Components.Pages.Login;
+using Dashboard.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +60,8 @@ builder.Services.AddHttpClient("ApiService", client =>
 // Provides a typed/scoped HttpClient instance for direct injection into Razor components
 builder.Services.AddScoped(sp =>
     sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiService"));
+
+builder.Services.AddScoped<ClanRosterState>();
 
 var app = builder.Build();
 

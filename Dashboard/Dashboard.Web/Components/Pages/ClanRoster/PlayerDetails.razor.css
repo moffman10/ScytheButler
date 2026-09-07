@@ -412,6 +412,34 @@
             backdrop-filter: blur(8px) !important;
             -webkit-backdrop-filter: blur(8px) !important;
         }
+        /* Keep the entire profile column above WOM Details */
+        .player-details-page .player-profile-column {
+            position: relative;
+            z-index: 20;
+        }
+
+        /* The icon/dropdown wrapper is already position-relative */
+        .player-details-page .player-profile-column
+        .d-flex.position-relative {
+            position: relative;
+        }
+
+        /* Dropdown itself */
+        .player-details-page .linked-accounts-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            min-width: 240px;
+        }
+
+        /* Make sure the menu isn't clipped */
+        .player-details-page .linked-accounts-dropdown .dropdown-menu {
+            position: static !important;
+            display: block !important;
+            margin: 0 !important;
+        }
 
 
         .player-details-page .dropdown-item {
@@ -420,11 +448,11 @@
         }
 
 
-            .player-details-page .dropdown-item:hover,
-            .player-details-page .dropdown-item:focus {
-                color: #ffffff !important;
-                background-color: rgba(139, 0, 0, 0.35) !important;
-            }
+        .player-details-page .dropdown-item:hover,
+        .player-details-page .dropdown-item:focus {
+            color: #ffffff !important;
+            background-color: rgba(139, 0, 0, 0.35) !important;
+        }
 
 
         /* =========================================================
