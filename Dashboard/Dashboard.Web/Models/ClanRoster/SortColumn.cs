@@ -5,6 +5,8 @@
         Name,
         Rank,
         Events,
+        Referals,
+        InDiscord,
         JoinedDate,
         TimeInClan
     }

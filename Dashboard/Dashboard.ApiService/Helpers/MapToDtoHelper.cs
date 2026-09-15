@@ -50,6 +50,8 @@ namespace Dashboard.ApiService.Helpers
                             Ehp = m.Player.Ehp,
                             Ehb = m.Player.Ehb,
                             Events = m.Player.Events,
+                            DiscordId = m.Player.DiscordId,
+                            Referals = m.Player.Referals,
                             RegisteredAt = m.Player.RegisteredAt,
                             UpdatedAt = m.Player.UpdatedAt,
                             CreatedAt = playerCreatedAt

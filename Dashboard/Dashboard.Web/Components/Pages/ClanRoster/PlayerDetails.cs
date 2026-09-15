@@ -1,13 +1,13 @@
 ﻿namespace Dashboard.Web.Components.Pages.PlayerDetails
 {
-    using Dashboard.Web.Models.PlayerDetails;
     using Dashboard.Web.Helpers;
+    using Dashboard.Web.Services;
     using Microsoft.AspNetCore.Components;
+    using Microsoft.JSInterop;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http.Json;
     using System.Threading.Tasks;
-    using System.Linq;
-    using Microsoft.JSInterop;
 
     public partial class PlayerDetails : ComponentBase
     {
@@ -21,6 +21,8 @@
         private NavigationManager Navigation { get; set; } = default!;
         [Inject]
         protected IJSRuntime JS { get; set; } = default!;
+        [Inject]
+        private ClanRosterState RosterState { get; set; } = default!;
 
         private WomPlayerDto? player;
         private List<WomPlayerDto>? linkedAccounts;
@@ -97,6 +99,32 @@
         private async Task GoBack()
         {
             Navigation.NavigateTo("/clan-roster");
+        }
+        private void NextPlayer()
+        {
+            var playerIds = RosterState.PlayerIds;
+
+            var currentIndex = playerIds.IndexOf(PlayerId);
+
+            if (currentIndex >= 0 && currentIndex < playerIds.Count - 1)
+            {
+                var nextPlayerId = playerIds[currentIndex + 1];
+
+                Navigation.NavigateTo($"/player-details/{nextPlayerId}");
+            }
+        }
+        private void PreviousPlayer()
+        {
+            var playerIds = RosterState.PlayerIds;
+
+            var currentIndex = playerIds.IndexOf(PlayerId);
+
+            if (currentIndex > 0)
+            {
+                var previousPlayerId = playerIds[currentIndex - 1];
+
+                Navigation.NavigateTo($"/player-details/{previousPlayerId}");
+            }
         }
 
         private async Task SaveNotesAsync()

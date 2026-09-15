@@ -93,6 +93,12 @@
                             <th @onclick="() => SortBy(SortColumn.Events)" class="sortable-header">
                                 Events <span class="sort-indicator">@SortIndicator(SortColumn.Events)</span>
                             </th>
+                            <th @onclick="() => SortBy(SortColumn.Referals)" class="sortable-header">
+                                Referals <span class="sort-indicator">@SortIndicator(SortColumn.Referals)</span>
+                            </th>
+                            <th @onclick="() => SortBy(SortColumn.InDiscord)" class="sortable-header">
+                                In Discord <span class="sort-indicator">@SortIndicator(SortColumn.InDiscord)</span>
+                            </th>
                             <th @onclick="() => SortBy(SortColumn.JoinedDate)" class="sortable-header">
                                 Joined Date <span class="sort-indicator">@SortIndicator(SortColumn.JoinedDate)</span>
                             </th>
@@ -124,6 +130,8 @@
                                     </td>
                                     <td><span class="badge @GetRankBadgeClass(member.Role)">@FormatRole(member.Role)</span></td>
                                     <td>@member.Player.Events</td>
+                                    <td>@member.Player.Referals</td>
+                                    <td>@(member.Player.DiscordId != null ? "✅" : "❌")</td>
                                     <td>@(member.Player.CreatedAt != DateTime.MinValue ? member.Player.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy") : "N/A")</td>
                                     <td>@CalculateTimeInClan(member.Player.CreatedAt)</td>
                                 </tr>

@@ -45,25 +45,35 @@ namespace ScytheButler.Core
 
             _interactions = new InteractionService(_client.Rest);
 
-            _services = new ServiceCollection()
-    .AddSingleton<IConfiguration>(config)
-    .AddSingleton(_client)
-    .AddSingleton(_interactions)
+            var services = new ServiceCollection();
 
-    .AddDbContext<AppDbContext>(options =>
-        options.UseSqlServer(config.GetConnectionString("DefaultConnection")))
+            services.AddSingleton<IConfiguration>(config);
+            services.AddSingleton(_client);
+            services.AddSingleton(_interactions);
 
-    .AddScoped<CofferService>()
-    .AddSingleton<WiseOldManService>()
-    .AddSingleton<DiceService>()
-    .AddSingleton<AccountService>()
-    .AddSingleton<AchievementService>()
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(
+                    config.GetConnectionString("DefaultConnection")));
 
-    .AddSingleton<CofferAutoCompleteHandler>()
-    .AddSingleton<ReasonAutocompleteHandler>()
-    .AddSingleton<MetricAutocompleteHandler>()
-    
-    .BuildServiceProvider();
+            services.AddScoped<CofferService>();
+            services.AddSingleton<WiseOldManService>();
+            services.AddSingleton<DiceService>();
+            services.AddSingleton<AccountService>();
+            services.AddSingleton<AchievementService>();
+            services.AddSingleton<LfrService>();
+
+            services.AddSingleton<CofferAutoCompleteHandler>();
+            services.AddSingleton<ReasonAutocompleteHandler>();
+            services.AddSingleton<MetricAutocompleteHandler>();
+
+            // Register ReferralService + HttpClient
+            services.AddHttpClient<ReferralService>(client =>
+            {
+                client.BaseAddress = new Uri("https://localhost:7521/");
+            });
+
+            // Build the IServiceProvider separately
+            _services = services.BuildServiceProvider();
 
         }
 

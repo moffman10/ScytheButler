@@ -19,6 +19,7 @@ public class WomPlayerDto
     public double Ehp { get; set; }
     public double Ehb { get; set; }
     public int Events { get; set; }
+    public int Referals { get; set; }
     public DateTime? RegisteredAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public DateTime CreatedAt { get; set; }

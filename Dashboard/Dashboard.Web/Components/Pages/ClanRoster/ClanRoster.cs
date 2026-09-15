@@ -83,6 +83,11 @@
                 {
                     clanData = response.ClanData;
                     lastSyncTime = response.LastSyncedAt;
+
+                    RosterState.PlayerIds = clanData.Memberships
+                        .OrderBy(m => m.Player.DisplayName)
+                        .Select(m => m.Player.Id)
+                        .ToList();
                 }
             }
             catch (Exception ex)
@@ -139,6 +144,8 @@
                     SortColumn.Name => true,
                     SortColumn.Rank => false,
                     SortColumn.Events => false,
+                    SortColumn.Referals => false,
+                    SortColumn.InDiscord => false,
                     SortColumn.JoinedDate => true,
                     SortColumn.TimeInClan => true,
                     _ => true

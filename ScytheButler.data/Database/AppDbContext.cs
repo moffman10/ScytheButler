@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ScytheButler.data.DatabaseModels.LoginModels;
 using ScytheButler.data.DatabaseModels.WomModels;
+using ScytheButler.data.DatabaseModels.Lfr;
 using ScytheButler.Models;
 
 namespace ScytheButler.Data
@@ -14,25 +15,29 @@ namespace ScytheButler.Data
         {
         }
 
-        // --- Wise Old Man Clan Roster ---
         public DbSet<WomGroup> Groups => Set<WomGroup>();
         public DbSet<WomPlayer> Players => Set<WomPlayer>();
         public DbSet<WomMembership> Memberships => Set<WomMembership>();
 
-        // --- Discord Bot Coffer Data ---
         public DbSet<Balance> Balances => Set<Balance>();
         public DbSet<Transaction> Transactions => Set<Transaction>();
 
-        // --- Player Achievements ---
         public DbSet<PlayerAchievement> PlayerAchievements => Set<PlayerAchievement>();
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        public DbSet<LfrParty> LfrParties => Set<LfrParty>();
+        public DbSet<LfrPartyMember> LfrPartyMembers => Set<LfrPartyMember>();
+
+        protected override void OnModelCreating(
+            ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Clan Roster relationships
             modelBuilder.Entity<WomMembership>()
-                .HasKey(m => new { m.PlayerId, m.GroupId });
+                .HasKey(m => new
+                {
+                    m.PlayerId,
+                    m.GroupId
+                });
 
             modelBuilder.Entity<WomMembership>()
                 .HasOne(m => m.Group)
@@ -44,11 +49,9 @@ namespace ScytheButler.Data
                 .WithMany()
                 .HasForeignKey(m => m.PlayerId);
 
-            // Coffer/Balance configuration
             modelBuilder.Entity<Balance>()
                 .HasKey(b => b.Bank);
 
-            // Player Achievements
             modelBuilder.Entity<PlayerAchievement>()
                 .HasKey(pa => pa.Id);
 
@@ -59,6 +62,35 @@ namespace ScytheButler.Data
                     pa.AchievementKey
                 })
                 .IsUnique();
+
+            modelBuilder.Entity<LfrParty>()
+                .HasKey(p => p.Id);
+
+            modelBuilder.Entity<LfrParty>()
+                .HasMany(p => p.Members)
+                .WithOne(m => m.LfrParty)
+                .HasForeignKey(m => m.LfrPartyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<LfrPartyMember>()
+                .HasKey(m => m.Id);
+
+            modelBuilder.Entity<LfrPartyMember>()
+                .HasIndex(m => new
+                {
+                    m.LfrPartyId,
+                    m.UserId
+                })
+                .IsUnique();
+
+            modelBuilder.Entity<LfrPartyMember>()
+                .HasIndex(m => new
+                {
+                    m.LfrPartyId,
+                    m.Role
+                })
+                .IsUnique()
+                .HasFilter("[Role] IS NOT NULL");
         }
     }
 }

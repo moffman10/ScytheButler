@@ -6,5 +6,6 @@
         public string SearchTerm { get; set; } = string.Empty;
         public Dashboard.Web.Models.ClanRoster.SortColumn SortColumn { get; set; } = Dashboard.Web.Models.ClanRoster.SortColumn.Name;
         public bool SortAscending { get; set; } = true;
+        public List<int> PlayerIds { get; set; } = new();
     }
 }
