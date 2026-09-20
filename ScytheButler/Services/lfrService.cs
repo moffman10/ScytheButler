@@ -397,7 +397,7 @@ namespace ScytheButler.Services
             /*
              * Automatically close the party when it becomes full.
              */
-            if (party.Members.Count + 1 >= party.TeamSize)
+            if (party.Members.Count >= party.TeamSize)
             {
                 party.IsClosed = true;
                 party.ClosedAt = DateTime.UtcNow;

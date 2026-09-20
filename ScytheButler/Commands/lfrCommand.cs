@@ -621,20 +621,6 @@ namespace ScytheButler.Commands
             }
         }
 
-        /*
-         * ============================================================
-         * BUMP PARTY
-         * ============================================================
-         *
-         * Real bump:
-         *
-         * 1. Get current party data.
-         * 2. Create a new Discord message.
-         * 3. Update the database MessageId.
-         * 4. Delete the old Discord message.
-         *
-         * The role ping is NOT repeated.
-         */
         [ComponentInteraction("lfr_bump:*")]
         public async Task BumpPartyButtonAsync(
             string partyIdValue)

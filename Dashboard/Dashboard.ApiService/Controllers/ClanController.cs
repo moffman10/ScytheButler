@@ -256,8 +256,8 @@ public class ClanController : ControllerBase
     private async Task UpsertGroupDataAsync(WomGroup freshGroup)
     {
         var syncTime = DateTime.UtcNow;
-
         var existingGroup = await _db.Groups.FindAsync(freshGroup.Id);
+
         if (existingGroup == null)
         {
             existingGroup = new WomGroup
@@ -287,12 +287,15 @@ public class ClanController : ControllerBase
 
         if (freshGroup.Memberships != null)
         {
+            var womPlayerIds = new HashSet<int>();
+
             foreach (var membership in freshGroup.Memberships)
             {
                 if (membership.Player == null || membership.Player.Id == 0)
                     continue;
 
                 int playerId = membership.Player.Id;
+                womPlayerIds.Add(playerId);
 
                 var existingPlayer = await _db.Players.FindAsync(playerId);
                 if (existingPlayer == null)
@@ -352,8 +355,20 @@ public class ClanController : ControllerBase
                     existingMembership.UpdatedAt = membership.UpdatedAt;
                 }
             }
+
+            // Remove memberships that are no longer returned by WOM
+            var existingMemberships = await _db.Memberships
+                .Where(m => m.GroupId == freshGroup.Id)
+                .ToListAsync();
+
+            var membershipsToRemove = existingMemberships
+                .Where(m => !womPlayerIds.Contains(m.PlayerId))
+                .ToList();
+
+            _db.Memberships.RemoveRange(membershipsToRemove);
         }
 
         await _db.SaveChangesAsync();
     }
+
 }
