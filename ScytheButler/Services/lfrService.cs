@@ -22,6 +22,7 @@ namespace ScytheButler.Services
         public const string HMT = "HMT";
         public const string CoX = "CoX";
         public const string CmCoX = "CM CoX";
+        public const string TFA = "TFA";
 
         /*
          * ============================================================
@@ -229,11 +230,11 @@ namespace ScytheButler.Services
              *
              * CoX and CM CoX are treated as unlimited.
              */
-            if (party.RaidType == ToA &&
+            if ((party.RaidType == ToA || party.RaidType == TFA) &&
                 party.Members.Count >= 8)
             {
                 throw new InvalidOperationException(
-                    "This ToA party is already full.");
+                    "This Raid party is already full.");
             }
 
             if (IsRoleBasedRaid(party.RaidType))
@@ -628,6 +629,7 @@ namespace ScytheButler.Services
             string raidType)
         {
             if (raidType != ToA &&
+                raidType != TFA &&
                 raidType != ToB &&
                 raidType != HMT &&
                 raidType != CoX &&

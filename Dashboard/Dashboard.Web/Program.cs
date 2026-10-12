@@ -1,5 +1,6 @@
 using Dashboard.Web.Components;
 using Dashboard.Web.Components.Pages.Login;
+using Dashboard.Web.Models.ClanCoffer;
 using Dashboard.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -62,6 +63,7 @@ builder.Services.AddScoped(sp =>
     sp.GetRequiredService<IHttpClientFactory>().CreateClient("ApiService"));
 
 builder.Services.AddScoped<ClanRosterState>();
+builder.Services.AddScoped<CofferState>();
 
 var app = builder.Build();
 

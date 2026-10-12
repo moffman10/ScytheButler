@@ -1,0 +1,230 @@
+﻿@page "/coffer"
+@attribute [Authorize]
+@namespace Dashboard.Web.Components.Pages.Coffer
+@using Dashboard.Web.Models.ClanCoffer
+@using Microsoft.AspNetCore.Authorization
+
+<PageTitle>Clan Coffer - ScytheBound</PageTitle>
+
+<div class="coffer-page min-vh-100 text-light">
+
+    <!-- Inner Content Wrapper applies horizontal padding without touching the background -->
+    <div class="coffer-content-wrapper py-4">
+
+        <!-- Top Action Bar -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="fw-bold text-light m-0">Clan Coffer</h1>
+                <p class="text-muted m-0 fs-6">Track clan treasury balances and transaction logs</p>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn sb-btn-secondary px-3 py-2 fw-semibold" @onclick="RefreshFromDatabaseAsync" disabled="@isUpdating">
+                    <span class="bi bi-arrow-repeat me-1" aria-hidden="true"></span> Refresh
+                </button>
+                <button class="btn sb-btn-primary px-4 py-2 fw-semibold" @onclick="ForceUpdateFromApiAsync" disabled="@isUpdating">
+                    <span class="bi bi-cloud-arrow-down-fill me-1" aria-hidden="true"></span> Sync Data
+                </button>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger alert-dismissible fade show fs-5" role="alert">
+                <span class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></span>@errorMessage
+            </div>
+        }
+
+        @if (cofferData != null)
+        {
+            <!-- Summary Cards -->
+            <div class="row g-4 mb-4">
+                @if (cofferData.BankBalances != null && cofferData.BankBalances.Any())
+                {
+                    @foreach (var bank in cofferData.BankBalances)
+                    {
+                        <div class="col-md-4">
+                            <div class="card sb-card rounded-4 p-4 h-100">
+                                <span class="text-muted small text-uppercase tracking-wider">@bank.BankName Has</span>
+                                <h3 class="fw-bold text-light my-1">@FormatGP(bank.Balance)</h3>
+                                <span class="text-muted small">@bank.PercentageOfCoffer.ToString("0.1")% of coffer</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-md-4">
+                        <div class="card sb-card rounded-4 p-4 h-100">
+                            <span class="text-muted small text-uppercase tracking-wider">Current Total Balance</span>
+                            <h3 class="fw-bold text-light my-1">@FormatGP(cofferData.TotalValue)</h3>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Filter Controls Toolbar -->
+            <div class="card sb-card rounded-4 p-4 mb-4">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-2">
+                        <label class="form-label text-danger small text-uppercase fw-bold">Event</label>
+                        <select class="form-select sb-input" value="@selectedEvent" @onchange="OnEventChanged">
+                            <option value="All Events">All Events</option>
+                            @foreach (var ev in GetAvailableEvents())
+                            {
+                                <option value="@ev">@ev</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label text-danger small text-uppercase fw-bold">Person</label>
+                        <select class="form-select sb-input" value="@selectedPerson" @onchange="OnPersonChanged">
+                            <option value="All People">All People</option>
+                            @foreach (var person in GetAvailablePeople())
+                            {
+                                <option value="@person">@person</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Search Field Target Selection -->
+                    <div class="col-md-2">
+                        <label class="form-label text-danger small text-uppercase fw-bold">Search Field</label>
+                        <select class="form-select sb-input" value="@searchField" @onchange="OnSearchFieldChanged">
+                            <option value="All">All Fields</option>
+                            <option value="User">User</option>
+                            <option value="Bank">Bank</option>
+                            <option value="Type">Type</option>
+                            <option value="Reason">Reason</option>
+                        </select>
+                    </div>
+
+                    <!-- Search Input Box -->
+                    <div class="col-md-4">
+                        <label class="form-label text-danger small text-uppercase fw-bold">Search Query</label>
+                        <input type="text" class="form-control sb-input"
+                               placeholder="@GetSearchPlaceholder()"
+                               value="@searchTerm" @oninput="OnSearchInput" />
+                    </div>
+
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn sb-btn-secondary w-100 py-2 mt-4" @onclick="ClearFilters">Clear Filters</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exclusion Notice Bar -->
+            <div class="alert alert-danger py-2 mb-4 rounded-3 text-muted small d-flex align-items-center">
+                <span class="bi bi-info-circle me-2 text-danger fs-5" aria-hidden="true"></span>
+                Filters exclude the following transaction types: Rebalance, Payouts, Clear Coffer.
+            </div>
+
+            <!-- Subtotal Indicator Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card sb-card rounded-4 p-4 d-flex flex-row justify-content-between align-items-center h-100">
+                        <div>
+                            <span class="text-muted small text-uppercase d-block">Total for Event</span>
+                            <span class="fw-bold text-light fs-5">@selectedEvent</span>
+                        </div>
+                        <span class="fs-3 fw-bold text-danger">@FormatGP(GetFilteredEventTotal())</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card sb-card rounded-4 p-4 d-flex flex-row justify-content-between align-items-center h-100">
+                        <div>
+                            <span class="text-muted small text-uppercase d-block">Total per Person</span>
+                            <span class="fw-bold text-light fs-5">@selectedPerson</span>
+                        </div>
+                        <span class="fs-3 fw-bold text-danger">@FormatGP(GetFilteredPersonTotal())</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Table Container -->
+            <div class="card sb-card rounded-4 p-4 mb-4">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle custom-table mb-0">
+                        <thead>
+                            <tr>
+                                <th class="sortable-header" @onclick="() => SortBy(CofferSortColumn.Username)">
+                                    User @SortIndicator(CofferSortColumn.Username)
+                                </th>
+                                <th class="sortable-header" @onclick="() => SortBy(CofferSortColumn.Bank)">
+                                    Bank @SortIndicator(CofferSortColumn.Bank)
+                                </th>
+                                <th class="sortable-header" @onclick="() => SortBy(CofferSortColumn.Type)">
+                                    Type @SortIndicator(CofferSortColumn.Type)
+                                </th>
+                                <th class="sortable-header" @onclick="() => SortBy(CofferSortColumn.Reason)">
+                                    Reason @SortIndicator(CofferSortColumn.Reason)
+                                </th>
+                                <th class="sortable-header text-end" @onclick="() => SortBy(CofferSortColumn.Amount)">
+                                    Amount @SortIndicator(CofferSortColumn.Amount)
+                                </th>
+                                <th class="sortable-header text-end" @onclick="() => SortBy(CofferSortColumn.Date)">
+                                    Date @SortIndicator(CofferSortColumn.Date)
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tx in GetPagedTransactions())
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="fw-semibold text-light">@tx.Username</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@tx.Bank</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(tx.Type?.ToLower() == "withdrawal" ? "bg-danger" : "bg-success")">
+                                            @tx.Type
+                                        </span>
+                                    </td>
+                                    <td class="text-muted">@tx.Reason</td>
+                                    <td class="text-end fw-bold @(tx.Amount < 0 ? "text-danger" : "text-success")">
+                                        @FormatGP(tx.Amount)
+                                    </td>
+                                    <td class="text-end text-muted">
+                                        @tx.Date.ToLocalTime().ToString("MMM dd, yyyy HH:mm")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="pagination-wrapper d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-secondary">
+                    <span class="text-muted small">
+                        Showing @GetStartIndex() to @GetEndIndex() of @TotalFilteredCount entries
+                    </span>
+                    <ul class="pagination pagination-sm m-0">
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(currentPage - 1)">Previous</button>
+                        </li>
+                        @for (int i = 1; i <= TotalPages; i++)
+                        {
+                            var pageNum = i;
+                            <li class="page-item @(currentPage == pageNum ? "active" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(pageNum)">@pageNum</button>
+                            </li>
+                        }
+                        <li class="page-item @(currentPage == TotalPages || TotalPages == 0 ? "disabled" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(currentPage + 1)">Next</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        }
+        else if (isUpdating)
+        {
+            <div class="d-flex align-items-center gap-3 my-5 py-5 justify-content-center">
+                <div class="spinner-border text-danger" style="width: 3rem; height: 3rem;" role="status"></div>
+                <span class="fs-4 text-muted">Loading coffer data...</span>
+            </div>
+        }
+    </div>
+</div>

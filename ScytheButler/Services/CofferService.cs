@@ -106,7 +106,7 @@ namespace ScytheButler.Services
         }
         public List<string> GetAllReasons()
         {
-            var path = Path.Combine(Directory.GetCurrentDirectory(),"..","..","..","Data", "reasons.txt");
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "Data", "reasons.txt");
             path = Path.GetFullPath(path);
             if (!File.Exists(path))
                 return new List<string>();
@@ -115,6 +115,24 @@ namespace ScytheButler.Services
                        .Where(x => !string.IsNullOrWhiteSpace(x))
                        .Select(x => x.Trim())
                        .ToList();
+        }
+        public List<string> GetAllDonors()
+        {
+            return _db.Transactions.Where(t => !string.IsNullOrEmpty(t.Username)).Select(t => t.Username).Distinct().OrderBy(u => u).ToList();
+        }
+
+        public bool TransferBetweenCoffers(string fromBank, string toBank, double amount)
+        {
+            var sourceEntry = _db.Balances.SingleOrDefault(b => b.Bank == fromBank);
+            var destEntry = _db.Balances.SingleOrDefault(b => b.Bank == toBank);
+
+            if (sourceEntry == null || destEntry == null || sourceEntry.Value < amount)
+                return false;
+
+            sourceEntry.Value -= amount;
+            destEntry.Value += amount;
+            _db.SaveChanges();
+            return true;
         }
     }
 }

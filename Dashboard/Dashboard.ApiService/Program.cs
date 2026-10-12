@@ -1,3 +1,4 @@
+using Dashboard.ApiService.Models;
 using Dashboard.ApiService.Services;
 using Microsoft.EntityFrameworkCore;
 using ScytheButler.Data;
@@ -23,6 +24,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddHttpClient<WomService>();
 builder.Services.AddScoped<AchievementService>();
 builder.Services.AddScoped<DiscordRoleSyncService>();
+builder.Services.AddScoped<CofferState>();
 
 var app = builder.Build();
 

@@ -26,6 +26,7 @@ namespace ScytheButler.Commands
         private const ulong HmtRoleId = 1392585833810366604;
         private const ulong CoxRoleId = 1392585878161064007;
         private const ulong CmCoxRoleId = 1392585897282768927;
+        private const ulong TFARoleId = 1559107226063339580;
 
         public LfrCommand(LfrService lfrService)
         {
@@ -71,7 +72,12 @@ namespace ScytheButler.Commands
                     "CM CoX",
                     "cmcox",
                     "Create an unlimited-size CM CoX party.",
-                    emote: new Emoji("🟢"));
+                    emote: new Emoji("🟢"))
+                .AddOption(
+                    "TFA",
+                    "tfa",
+                    "Create an 8-player TFA party.",
+                    emote: new Emoji("📚"));
 
             var component = new ComponentBuilder()
                 .WithSelectMenu(menu)
@@ -108,6 +114,10 @@ namespace ScytheButler.Commands
                 case "toa":
                     await CreateGenericPartyAsync(
                         LfrService.ToA);
+                    break;
+                case "tfa":
+                    await CreateGenericPartyAsync(
+                        LfrService.TFA);
                     break;
 
                 case "cox":
@@ -931,7 +941,7 @@ namespace ScytheButler.Commands
 
             lines.Add("");
 
-            if (party.RaidType == LfrService.ToA)
+            if (party.RaidType == LfrService.ToA || party.RaidType == LfrService.TFA)
             {
                 lines.Add(
                     $"**Players:** {party.Members.Count}/8");
@@ -1060,6 +1070,7 @@ namespace ScytheButler.Commands
                 LfrService.HMT => HmtRoleId,
                 LfrService.CoX => CoxRoleId,
                 LfrService.CmCoX => CmCoxRoleId,
+                LfrService.TFA => TFARoleId,
                 _ => 0UL
             };
         }
@@ -1079,6 +1090,7 @@ namespace ScytheButler.Commands
                 LfrService.HMT => "💀",
                 LfrService.CoX => "🟢",
                 LfrService.CmCoX => "🟢",
+                LfrService.TFA => "📚",
                 _ => "🟡"
             };
         }

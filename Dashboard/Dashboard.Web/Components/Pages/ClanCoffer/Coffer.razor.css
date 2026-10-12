@@ -1,0 +1,266 @@
+/* =========================================================
+   SCYTHEBOUND COFFER THEME
+   Scoped Blazor Razor CSS
+   ========================================================= */
+
+/* =========================================================
+   PAGE ROOT + THEME VARIABLES
+   ========================================================= */
+.coffer-page {
+    --sb-bg-dark: #121214;
+    --sb-crimson: #8b0000;
+    --sb-crimson-bright: #b31313;
+    --sb-crimson-hover: #a50000;
+    --sb-gold: #c5a059;
+    --sb-text-main: #ffffff;
+    --sb-text-muted: #94949b;
+    --sb-glass-card: rgba(15, 15, 20, 0.62);
+    --sb-glass-card-strong: rgba(12, 12, 16, 0.76);
+    --sb-glass-input: rgba(10, 10, 14, 0.48);
+    --sb-glass-tile: rgba(18, 18, 23, 0.52);
+    --sb-border-subtle: rgba(255, 255, 255, 0.14);
+    --sb-border-red: rgba(139, 0, 0, 0.55);
+    --sb-border-red-strong: rgba(139, 0, 0, 0.88);
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: var(--sb-text-main) !important;
+}
+
+    /* =========================================================
+   FULL-SCREEN EDGE-TO-EDGE CANVAS BACKGROUND
+   ========================================================= */
+    .coffer-page::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: var(--sb-bg-dark) !important;
+        background-image: url('/Resources/Images/Backgrounds/HomePageBackground.png') !important;
+        background-size: cover !important;
+        background-position: center center !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* Darkening overlay over background image */
+    .coffer-page::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(180deg, rgba(8, 8, 11, 0.38) 0%, rgba(8, 8, 11, 0.58) 100%);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* Ensure all page content sits above full-screen background */
+    .coffer-page > * {
+        position: relative;
+        z-index: 1;
+    }
+
+/* =========================================================
+   INNER CONTENT WRAPPER (Pushes content inward safely)
+   ========================================================= */
+.coffer-content-wrapper {
+    padding-left: clamp(1.5rem, 5vw, 6rem) !important;
+    padding-right: clamp(1.5rem, 5vw, 6rem) !important;
+    width: 100%;
+    max-width: 1800px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   GENERAL TEXT
+   ========================================================= */
+.coffer-page .text-light,
+.coffer-page .text-white {
+    color: #ffffff !important;
+}
+
+.coffer-page .text-muted {
+    color: var(--sb-text-muted) !important;
+}
+
+.coffer-page .text-danger {
+    color: #d85b5b !important;
+}
+
+/* =========================================================
+   MAIN GLASS CARDS
+   ========================================================= */
+.coffer-page .sb-card,
+.coffer-page .card.sb-card,
+.coffer-page ::deep .sb-card {
+    background-color: var(--sb-glass-card) !important;
+    border: 1px solid var(--sb-border-red) !important;
+    color: var(--sb-text-main) !important;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.50), 0 0 20px rgba(139, 0, 0, 0.08) !important;
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+}
+
+/* =========================================================
+   FORM CONTROLS
+   ========================================================= */
+.coffer-page .sb-input,
+.coffer-page .form-select,
+.coffer-page .form-control {
+    background-color: var(--sb-glass-input) !important;
+    border: 1px solid var(--sb-border-subtle) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    backdrop-filter: blur(3px) !important;
+    -webkit-backdrop-filter: blur(3px) !important;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+    .coffer-page .sb-input:focus,
+    .coffer-page .form-select:focus,
+    .coffer-page .form-control:focus {
+        background-color: rgba(18, 18, 24, 0.66) !important;
+        color: #ffffff !important;
+        border-color: var(--sb-crimson) !important;
+        box-shadow: 0 0 0 0.20rem rgba(139, 0, 0, 0.22) !important;
+        outline: none !important;
+    }
+
+    .coffer-page .form-select option {
+        background-color: #121214 !important;
+        color: #ffffff !important;
+    }
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+.coffer-page .sb-btn-primary,
+.coffer-page .btn-danger {
+    background: linear-gradient(90deg, #720000 0%, #8b0000 100%) !important;
+    border-color: #610000 !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 10px rgba(139, 0, 0, 0.30) !important;
+    transition: background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+}
+
+    .coffer-page .sb-btn-primary:hover,
+    .coffer-page .sb-btn-primary:focus {
+        background: linear-gradient(90deg, #8b0000 0%, #a50000 100%) !important;
+        border-color: var(--sb-crimson) !important;
+        color: #ffffff !important;
+        box-shadow: 0 5px 15px rgba(139, 0, 0, 0.52) !important;
+    }
+
+.coffer-page .sb-btn-secondary,
+.coffer-page .btn-outline-secondary {
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.20) !important;
+    background-color: rgba(15, 15, 20, 0.46) !important;
+    backdrop-filter: blur(3px) !important;
+    -webkit-backdrop-filter: blur(3px) !important;
+    box-shadow: none !important;
+}
+
+    .coffer-page .sb-btn-secondary:hover,
+    .coffer-page .sb-btn-secondary:focus {
+        background-color: rgba(40, 40, 50, 0.72) !important;
+        border-color: rgba(255, 255, 255, 0.38) !important;
+        color: #ffffff !important;
+    }
+
+/* =========================================================
+   TABLE STYLING
+   ========================================================= */
+.coffer-page ::deep .table-responsive {
+    background-color: transparent !important;
+    border-radius: 6px;
+}
+
+.coffer-page ::deep .table {
+    color: #ffffff !important;
+    background-color: transparent !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    --bs-table-bg: transparent !important;
+    --bs-table-accent-bg: transparent !important;
+}
+
+    .coffer-page ::deep .table > tbody > tr > td {
+        background-color: rgba(20, 20, 25, 0.6) !important;
+        color: #ffffff !important;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9) !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+        padding-top: 0.8rem;
+        padding-bottom: 0.8rem;
+    }
+
+.coffer-page ::deep .table-hover > tbody > tr:hover > td {
+    background-color: rgba(139, 0, 0, 0.45) !important;
+    color: #ffffff !important;
+}
+
+.coffer-page ::deep .table > thead > tr > th {
+    color: #d85b5b !important;
+    background-color: rgba(15, 15, 20, 0.85) !important;
+    border-bottom: 2px solid var(--sb-crimson) !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px;
+}
+
+.coffer-page ::deep .sortable-header {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+    .coffer-page ::deep .sortable-header:hover {
+        background-color: rgba(40, 40, 50, 0.7) !important;
+        color: #dfbd71 !important;
+    }
+
+.coffer-page ::deep .sort-indicator {
+    margin-left: 6px;
+    font-weight: bold;
+    color: var(--sb-gold);
+}
+
+/* =========================================================
+   PAGINATION
+   ========================================================= */
+.coffer-page ::deep .pagination .page-link {
+    background-color: rgba(20, 20, 25, 0.6);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--sb-text-main);
+}
+
+.coffer-page ::deep .pagination .page-item.active .page-link {
+    background-color: var(--sb-crimson);
+    border-color: var(--sb-crimson);
+    color: #ffffff;
+}
+
+.coffer-page ::deep .pagination .page-item.disabled .page-link {
+    background-color: rgba(15, 15, 20, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #555555;
+}
+
+/* =========================================================
+   SPINNER
+   ========================================================= */
+.coffer-page .spinner-border.text-danger {
+    color: var(--sb-crimson-bright) !important;
+}

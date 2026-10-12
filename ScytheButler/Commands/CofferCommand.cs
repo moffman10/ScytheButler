@@ -107,7 +107,7 @@ namespace ScytheButler.Commands
     [Choice("Buy-In", "Buy-In")]
     string type,
     [Autocomplete(typeof(ReasonAutocompleteHandler))] string reason,
-    string username
+    [Autocomplete(typeof(DonorAutoCompleteHandler))] string username
 )
         {
             double amount;
@@ -176,7 +176,7 @@ namespace ScytheButler.Commands
                string amountInput,
                [Choice("Payout", "Payout")][Choice("Refund", "Refund")] string type,
                [Autocomplete(typeof(ReasonAutocompleteHandler))] string reason,
-               string username
+               [Autocomplete(typeof(DonorAutoCompleteHandler))] string username
         )
         {
             double amount;
@@ -232,6 +232,81 @@ namespace ScytheButler.Commands
                     $"**Type:** {type}\n" +
                     $"**Reason:** {reason}\n\n" +
                     $"New balance: **{userTotal:N0} coins**")
+                 .WithColor(Color.Green);
+
+            await RespondAsync(embed: embed.Build());
+        }
+        [SlashCommand("coffer-transfer", "Transfer coins from one bank to another.")]
+        public async Task TransferCoffer(
+            [Autocomplete(typeof(CofferAutoCompleteHandler))] string fromBank,
+            [Autocomplete(typeof(CofferAutoCompleteHandler))] string toBank,
+            string amountInput,
+            [Autocomplete(typeof(ReasonAutocompleteHandler))] string reason,
+            [Autocomplete(typeof(DonorAutoCompleteHandler))] string username
+        )
+        {
+            if (fromBank.Equals(toBank, StringComparison.OrdinalIgnoreCase))
+            {
+                await RespondAsync("❌ Cannot transfer coins to the same bank.", ephemeral: true);
+                return;
+            }
+
+            double amount;
+            try
+            {
+                amount = _cofferService.ParseAmount(amountInput);
+            }
+            catch
+            {
+                var embedError = new EmbedBuilder()
+                    .WithTitle("❌ Invalid Amount")
+                    .WithDescription("Use numbers like `1000`, `10K`, or `2.5M`.")
+                    .WithColor(Color.Red)
+                    .WithCurrentTimestamp();
+
+                await RespondAsync(embed: embedError.Build(), ephemeral: true);
+                return;
+            }
+
+            var validReasons = _cofferService.GetAllReasons();
+            if (!validReasons.Contains(reason))
+            {
+                await RespondAsync("❌ Invalid reason selected.", ephemeral: true);
+                return;
+            }
+
+            bool success = _cofferService.TransferBetweenCoffers(fromBank, toBank, amount);
+            var embed = new EmbedBuilder().WithCurrentTimestamp();
+
+            if (!success)
+            {
+                embed.WithTitle("❌ Transfer Failed")
+                     .WithDescription($"Could not complete transfer. Ensure both banks exist and `{fromBank}` has at least **{amount:N0} coins**.")
+                     .WithColor(Color.Red);
+
+                await RespondAsync(embed: embed.Build());
+                return;
+            }
+
+            // Log as a "Rebalance" type so it matches your web dashboard's filter rules
+            await _cofferService.AddTransactionAsync(
+                username,
+                -amount,
+                "Rebalance",
+                reason,
+                fromBank
+            );
+
+            double sourceTotal = _cofferService.GetCofferBalance(fromBank);
+            double destTotal = _cofferService.GetCofferBalance(toBank);
+
+            embed.WithTitle("✅ Transfer Successful")
+                 .WithDescription(
+                    $"Successfully transferred **{amount:N0} coins** from `{fromBank}` to `{toBank}`.\n\n" +
+                    $"**Initiated By:** {username}\n" +
+                    $"**Reason:** {reason}\n\n" +
+                    $"`{fromBank}` new balance: **{sourceTotal:N0} coins**\n" +
+                    $"`{toBank}` new balance: **{destTotal:N0} coins**")
                  .WithColor(Color.Green);
 
             await RespondAsync(embed: embed.Build());

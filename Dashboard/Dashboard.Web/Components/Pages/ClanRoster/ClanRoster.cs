@@ -4,6 +4,7 @@
     using Dashboard.Web.Models.ClanRoster;
     using Dashboard.Web.Services;
     using Microsoft.AspNetCore.Components;
+    using Dashboard.Web.Models.ClanCoffer;
     using System.Net.Http.Json;
 
     public partial class ClanRoster
